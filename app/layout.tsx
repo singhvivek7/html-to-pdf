@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://renderpdf.vercel.app"),
   title: {
     default: "HTML to PDF — Convert HTML to PDF Online | RenderPDF",
-    template: "%s | HTML to PDF",
+    template: "%s | RenderPDF",
   },
   description:
     "Transform HTML, CSS, and JavaScript into beautiful, print-ready PDFs. Free online editor with live preview. Generate invoices, reports, tickets and more — no signup required.",

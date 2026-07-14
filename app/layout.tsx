@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   creator: "Vivek",
   openGraph: {
     type: "website",
-    siteName: "HTML to PDF",
+    siteName: "RenderPDF",
     title: "HTML to PDF — Convert HTML to PDF Online",
     description:
       "Transform HTML, CSS, and JavaScript into beautiful, print-ready PDFs. Free online editor with live preview.",

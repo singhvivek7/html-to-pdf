@@ -16,7 +16,166 @@ import {
   RotateCcw,
 } from "lucide-react";
 
-const defaultHTML = ``;
+const defaultHTML = `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 40px;
+      background: white;
+      color: #1a1a1a;
+    }
+    .invoice {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #f97316;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #f97316;
+    }
+    .invoice-title {
+      text-align: right;
+    }
+    .invoice-title h1 {
+      font-size: 32px;
+      color: #1a1a1a;
+    }
+    .invoice-title p {
+      color: #666;
+      margin-top: 5px;
+    }
+    .details {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+    .details-section h3 {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .details-section p {
+      margin: 5px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+    th {
+      background: #f8f8f8;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #e5e5e5;
+    }
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .amount {
+      text-align: right;
+    }
+    .total-row td {
+      font-weight: bold;
+      font-size: 18px;
+      border-bottom: none;
+      padding-top: 20px;
+    }
+    .footer {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e5e5;
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice">
+    <div class="header">
+      <div class="logo">ACME Inc.</div>
+      <div class="invoice-title">
+        <h1>INVOICE</h1>
+        <p>#INV-2024-001</p>
+      </div>
+    </div>
+
+    <div class="details">
+      <div class="details-section">
+        <h3>Bill To</h3>
+        <p><strong>John Doe</strong></p>
+        <p>123 Main Street</p>
+        <p>New York, NY 10001</p>
+        <p>john@example.com</p>
+      </div>
+      <div class="details-section">
+        <h3>Invoice Details</h3>
+        <p><strong>Date:</strong> November 28, 2025</p>
+        <p><strong>Due Date:</strong> December 28, 2025</p>
+        <p><strong>Status:</strong> Pending</p>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Qty</th>
+          <th class="amount">Price</th>
+          <th class="amount">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Web Design Services</td>
+          <td>1</td>
+          <td class="amount">$1,500.00</td>
+          <td class="amount">$1,500.00</td>
+        </tr>
+        <tr>
+          <td>Frontend Development</td>
+          <td>40 hrs</td>
+          <td class="amount">$75.00</td>
+          <td class="amount">$3,000.00</td>
+        </tr>
+        <tr>
+          <td>Backend API Integration</td>
+          <td>20 hrs</td>
+          <td class="amount">$85.00</td>
+          <td class="amount">$1,700.00</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="3">Total</td>
+          <td class="amount">$6,200.00</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="footer">
+      <p>Thank you for your business!</p>
+      <p>Payment is due within 30 days. Please include invoice number with payment.</p>
+    </div>
+  </div>
+</body>
+</html>`;
 
 export default function EditorPage() {
   const [html, setHtml] = useState(defaultHTML);

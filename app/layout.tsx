@@ -20,7 +20,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://renderpdf.vercel.app"),
   title: {
-    default: "HTML to PDF — Convert HTML to PDF Online | RenderPDF",
+    default: "Convert HTML to PDF Online | RenderPDF",
     template: "%s | RenderPDF",
   },
   description:
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "RenderPDF",
-    title: "HTML to PDF — Convert HTML to PDF Online",
+    title: "RenderPDF — Convert HTML to PDF Online",
     description:
       "Transform HTML, CSS, and JavaScript into beautiful, print-ready PDFs. Free online editor with live preview.",
     url: "https://renderpdf.vercel.app",
@@ -51,13 +51,13 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "HTML to PDF — Convert HTML to PDF Online",
+        alt: "RenderPDF — Convert HTML to PDF Online",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "HTML to PDF — Convert HTML to PDF Online",
+    title: "RenderPDF — Convert HTML to PDF Online",
     description:
       "Transform HTML, CSS, and JavaScript into beautiful, print-ready PDFs. Free online editor — no signup required.",
     images: ["/opengraph-image"],

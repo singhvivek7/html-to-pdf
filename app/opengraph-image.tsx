@@ -54,7 +54,7 @@ export default function OgImage() {
           </span>
         </div>
 
-        {/* Title: "HTML to PDF" — "PDF" in orange */}
+        {/* Title: "RenderPDF" — "PDF" in orange */}
         <div style={{ display: "flex", alignItems: "baseline" }}>
           <span
             style={{
@@ -65,7 +65,7 @@ export default function OgImage() {
               letterSpacing: "-2px",
             }}
           >
-            {"HTML to\u00A0"}
+            {"Render\u00A0"}
           </span>
           <span
             style={{
@@ -75,9 +75,7 @@ export default function OgImage() {
               lineHeight: 1,
               letterSpacing: "-2px",
             }}
-          >
-            PDF
-          </span>
+          >PDF</span>
         </div>
 
         {/* Subtitle */}

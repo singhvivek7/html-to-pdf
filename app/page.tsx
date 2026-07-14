@@ -90,7 +90,7 @@ export default function Home() {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-red-500">
               <FileCode className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold">HTML to PDF</span>
+            <span className="text-xl font-bold">RenderPDF</span>
           </div>
           <div className="hidden items-center gap-8 md:flex">
             <a href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
@@ -138,7 +138,7 @@ export default function Home() {
             <h1 className="animate-fade-up text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
               Convert{" "}
               <span className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent">
-                HTML to PDF
+                RenderPDF
               </span>{" "}
               instantly
             </h1>
@@ -416,7 +416,7 @@ const pdf = await response.blob();`}</code>
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-red-500">
                 <FileCode className="h-4 w-4 text-white" />
               </div>
-              <span className="font-bold">HTML to PDF</span>
+              <span className="font-bold">RenderPDF</span>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
               <Link href="/editor" className="transition-colors hover:text-foreground">Editor</Link>
@@ -425,11 +425,55 @@ const pdf = await response.blob();`}</code>
               <a href="#" className="transition-colors hover:text-foreground">Terms</a>
             </div>
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} HTML to PDF. All rights reserved.
+              &copy; {new Date().getFullYear()} RenderPDF. All rights reserved.
             </p>
           </div>
         </div>
       </footer>
+
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "RenderPDF",
+              url: "https://renderpdf.vercel.app",
+              applicationCategory: "DeveloperApplication",
+              operatingSystem: "Web",
+              description:
+                "Transform HTML, CSS, and JavaScript into beautiful, print-ready PDFs. Free online editor — generate invoices, reports, tickets and more.",
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "INR",
+              },
+              author: {
+                "@type": "Person",
+                name: "Vivek",
+                url: "https://vivekkk.vercel.app",
+              },
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              url: "https://renderpdf.vercel.app",
+              name: "RenderPDF",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate:
+                    "https://renderpdf.vercel.app/?q={search_term_string}",
+                },
+                "query-input": "required name=search_term_string",
+              },
+            },
+          ]),
+        }}
+      />
     </div>
   );
 }

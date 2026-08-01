@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowRight, Sparkles, Code, FileText, Download } from "lucide-react";
+import { ArrowRight, ChevronRight, Sparkles, Code, FileText, Download } from "lucide-react";
+import { AuroraBackground } from "@/components/aurora-background";
 
 const container = {
   hidden: {},
@@ -17,13 +18,7 @@ const item = {
 export function Hero() {
   return (
     <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-32">
-      {/* Background: dot grid + floating gradient orbs */}
-      <div className="absolute inset-0 -z-10">
-        <div className="bg-grid absolute inset-0" />
-        <div className="animate-float absolute left-1/2 top-0 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-gradient-to-br from-orange-500/20 via-red-500/10 to-transparent blur-3xl" />
-        <div className="animate-float-delayed absolute right-0 top-1/4 h-[400px] w-[400px] rounded-full bg-gradient-to-bl from-purple-500/10 to-transparent blur-3xl" />
-        <div className="animate-float absolute left-0 bottom-0 h-[300px] w-[300px] rounded-full bg-gradient-to-tr from-blue-500/10 to-transparent blur-3xl" />
-      </div>
+      <AuroraBackground />
 
       <motion.div
         variants={container}
@@ -34,10 +29,11 @@ export function Hero() {
         <div className="mx-auto max-w-3xl text-center">
           <motion.div
             variants={item}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-4 py-1.5 text-sm"
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm backdrop-blur-sm"
           >
             <Sparkles className="h-4 w-4 text-orange-500" />
             <span>Pixel-perfect PDF generation</span>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
           </motion.div>
 
           <motion.h1 variants={item} className="text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
@@ -68,7 +64,7 @@ export function Hero() {
             </Link>
             <Link
               href="/docs"
-              className="w-full rounded-xl border border-border bg-background px-8 py-4 text-center text-lg font-semibold transition-all hover:bg-muted sm:w-auto"
+              className="w-full rounded-xl border border-white/15 bg-white/5 px-8 py-4 text-center text-lg font-semibold backdrop-blur-sm transition-colors hover:bg-white/10 sm:w-auto"
             >
               View Docs
             </Link>
@@ -77,15 +73,15 @@ export function Hero() {
 
         {/* Code Preview */}
         <motion.div variants={item} className="relative mx-auto mt-20 max-w-4xl">
-          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-            <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-3">
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-2xl backdrop-blur-sm">
+            <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.02] px-4 py-3">
               <div className="flex gap-1.5">
                 <div className="h-3 w-3 rounded-full bg-red-500" />
                 <div className="h-3 w-3 rounded-full bg-yellow-500" />
                 <div className="h-3 w-3 rounded-full bg-green-500" />
               </div>
               <div className="ml-4 flex gap-1">
-                <div className="rounded-t-lg bg-background px-4 py-1.5 text-sm font-medium">index.html</div>
+                <div className="rounded-t-lg bg-white/5 px-4 py-1.5 text-sm font-medium">index.html</div>
                 <div className="rounded-t-lg bg-transparent px-4 py-1.5 text-sm text-muted-foreground">style.css</div>
               </div>
             </div>
@@ -132,14 +128,14 @@ export function Hero() {
             </div>
           </div>
           {/* Floating Elements */}
-          <div className="animate-bounce-slow absolute -left-8 top-1/4 hidden rounded-xl border border-border bg-card p-3 shadow-lg lg:block">
-            <Code className="h-6 w-6 text-blue-500" />
+          <div className="animate-bounce-slow absolute -left-8 top-1/4 hidden rounded-xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-sm lg:block">
+            <Code className="h-6 w-6 text-blue-400" />
           </div>
-          <div className="animate-bounce-slow animation-delay-200 absolute -right-8 top-1/3 hidden rounded-xl border border-border bg-card p-3 shadow-lg lg:block">
-            <FileText className="h-6 w-6 text-orange-500" />
+          <div className="animate-bounce-slow animation-delay-200 absolute -right-8 top-1/3 hidden rounded-xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-sm lg:block">
+            <FileText className="h-6 w-6 text-orange-400" />
           </div>
-          <div className="animate-bounce-slow animation-delay-500 absolute -right-4 bottom-1/4 hidden rounded-xl border border-border bg-card p-3 shadow-lg lg:block">
-            <Download className="h-6 w-6 text-green-500" />
+          <div className="animate-bounce-slow animation-delay-500 absolute -right-4 bottom-1/4 hidden rounded-xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-sm lg:block">
+            <Download className="h-6 w-6 text-green-400" />
           </div>
         </motion.div>
       </motion.div>

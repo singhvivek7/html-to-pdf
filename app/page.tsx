@@ -91,12 +91,12 @@ export default async function Home() {
   const isSignedIn = !!session?.user;
 
   return (
-    <div className="min-h-screen bg-background font-sans">
+    <div className="dark min-h-screen bg-background font-sans text-foreground">
       <SiteNav isSignedIn={isSignedIn} />
       <Hero />
 
       {/* Stats Section */}
-      <section className="border-y border-border bg-muted/30 py-12">
+      <section className="border-y border-white/10 bg-white/[0.02] py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {stats.map((stat, i) => (
@@ -124,7 +124,7 @@ export default async function Home() {
             {features.map((feature, i) => (
               <ScrollReveal key={feature.title} delay={i * 80}>
               <MotionCard
-                className="group relative h-full overflow-hidden rounded-2xl border border-border bg-card p-6 transition-colors hover:border-orange-500/50 hover:shadow-lg"
+                className="group relative h-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-sm transition-colors hover:border-orange-500/50 hover:shadow-lg"
               >
                 <div
                   className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${feature.color} p-3 text-white`}
@@ -141,8 +141,49 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="py-20 sm:py-32">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ScrollReveal className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">How It Works</h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              From markup to a downloadable PDF in three steps
+            </p>
+          </ScrollReveal>
+          <div className="mt-16 grid gap-6 md:grid-cols-3">
+            {[
+              {
+                step: "1",
+                title: "Write HTML & CSS",
+                description: "Use the browser editor, or send HTML straight to the API - no template DSL to learn.",
+              },
+              {
+                step: "2",
+                title: "Set your options",
+                description: "Pick page format, orientation, and margins - the same options in the editor and the API.",
+              },
+              {
+                step: "3",
+                title: "Get your PDF",
+                description: "Download it from the editor, or receive the raw PDF bytes back from your API call.",
+              },
+            ].map((s, i) => (
+              <ScrollReveal key={s.step} delay={i * 100}>
+                <MotionCard className="relative h-full rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-sm">
+                  <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-red-500 text-lg font-bold text-white">
+                    {s.step}
+                  </div>
+                  <h3 className="text-xl font-semibold">{s.title}</h3>
+                  <p className="mt-2 text-muted-foreground">{s.description}</p>
+                </MotionCard>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Use Cases Section */}
-      <section id="use-cases" className="bg-muted/30 py-20 sm:py-32">
+      <section id="use-cases" className="bg-white/[0.02] py-20 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Built for developers</h2>
@@ -153,7 +194,7 @@ export default async function Home() {
           <div className="mt-16 grid gap-8 md:grid-cols-3">
             {useCases.map((item, i) => (
               <ScrollReveal key={item.title} delay={i * 80}>
-              <MotionCard className="h-full rounded-2xl border border-border bg-card p-6 text-center">
+              <MotionCard className="h-full rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur-sm">
                 <item.icon className="mx-auto mb-4 h-12 w-12 text-orange-500" />
                 <h3 className="text-xl font-semibold">{item.title}</h3>
                 <p className="mt-2 text-muted-foreground">{item.description}</p>
@@ -225,7 +266,7 @@ export default async function Home() {
       </section>
 
       {/* Trust Section */}
-      <section className="bg-muted/30 py-20 sm:py-32">
+      <section className="bg-white/[0.02] py-20 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Secure and dependable</h2>
@@ -240,7 +281,7 @@ export default async function Home() {
               { icon: Zap, color: "text-yellow-500", title: "Lightning Fast", desc: "Average generation time under 2 seconds" },
             ].map((card, i) => (
               <ScrollReveal key={card.title} delay={i * 80}>
-                <MotionCard className="h-full rounded-2xl border border-border bg-card p-6 text-center">
+                <MotionCard className="h-full rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur-sm">
                   <card.icon className={`mx-auto mb-4 h-12 w-12 ${card.color}`} />
                   <h3 className="text-xl font-semibold">{card.title}</h3>
                   <p className="mt-2 text-muted-foreground">{card.desc}</p>
@@ -274,7 +315,7 @@ export default async function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-muted/30 py-12">
+      <footer className="border-t border-white/10 bg-white/[0.02] py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-2">

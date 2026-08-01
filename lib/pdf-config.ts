@@ -72,3 +72,41 @@ export function sanitizePdfConfig(input: unknown): PdfConfig {
     marginLeft: sanitizeMargin(raw.marginLeft),
   };
 }
+
+export interface PublicConvertOptions {
+  format?: string;
+  orientation?: string;
+  margin?: string | { top?: string; right?: string; bottom?: string; left?: string };
+}
+
+function parseMarginString(value: string): number {
+  const match = /^(\d+(?:\.\d+)?)\s*mm$/i.exec(value.trim());
+  return match ? parseFloat(match[1]) : 0;
+}
+
+// Maps the public API's simpler request shape (format: "A4", margin: "20mm")
+// onto the internal PdfConfig, then runs it through the same
+// sanitizePdfConfig() clamp/whitelist used everywhere else - one place
+// owns validation regardless of which entry point produced the raw values.
+export function publicOptionsToPdfConfig(options: PublicConvertOptions | undefined): PdfConfig {
+  const raw: Partial<Record<keyof PdfConfig, unknown>> = {};
+
+  if (typeof options?.format === "string") raw.format = options.format.toLowerCase();
+  if (typeof options?.orientation === "string") raw.orientation = options.orientation.toLowerCase();
+
+  if (typeof options?.margin === "string") {
+    const mm = parseMarginString(options.margin);
+    raw.marginTop = mm;
+    raw.marginRight = mm;
+    raw.marginBottom = mm;
+    raw.marginLeft = mm;
+  } else if (options?.margin && typeof options.margin === "object") {
+    const { top, right, bottom, left } = options.margin;
+    if (typeof top === "string") raw.marginTop = parseMarginString(top);
+    if (typeof right === "string") raw.marginRight = parseMarginString(right);
+    if (typeof bottom === "string") raw.marginBottom = parseMarginString(bottom);
+    if (typeof left === "string") raw.marginLeft = parseMarginString(left);
+  }
+
+  return sanitizePdfConfig(raw);
+}

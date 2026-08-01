@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// --- Auth.js (@auth/prisma-adapter) models: field names/types match the
+// adapter's expected shape exactly, do not rename. ---
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  apiClients    ApiClient[]
+  planId        String?   @db.ObjectId
+  plan          Plan?     @relation(fields: [planId], references: [id])
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// --- Application models ---
+
+// A public API credential pair. clientId is a non-secret public identifier
+// (safe to display permanently); clientSecretHash is the SHA-256 hash of
+// the secret shown to the user exactly once at creation time.
+model ApiClient {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String    @db.ObjectId
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  clientId         String    @unique
+  clientSecretHash String
+  createdAt        DateTime  @default(now())
+  revokedAt        DateTime?
+  lastUsedAt       DateTime?
+}
+
+// One document per (clientRecordId, fixed window). The TTL index (created
+// via a raw command in lib/rate-limit.ts, since Prisma's schema DSL has no
+// TTL-index option for Mongo) expires old windows automatically.
+model RateLimitWindow {
+  id        String   @id @map("_id")
+  count     Int
+  expiresAt DateTime
+}
+
+// A pricing plan, configurable from the backend (Task 2's lib/models/plans.ts)
+// with no UI yet - the UI comes later. status lets an operator deprecate an
+// old plan and launch a new one without deleting history: deprecated plans
+// stay attached to whichever users already have them, they just stop being
+// offered to new sign-ups. requestsPerMinute is the per-API-client rate
+// limit Task 5's rate limiter enforces for users on this plan.
+model Plan {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  slug              String    @unique
+  priceCents        Int
+  requestsPerMinute Int
+  isDefault         Boolean   @default(false)
+  status            String    @default("active")
+  createdAt         DateTime  @default(now())
+  deprecatedAt      DateTime?
+  users             User[]
+}

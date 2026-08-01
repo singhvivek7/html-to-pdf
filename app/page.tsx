@@ -16,6 +16,8 @@ import {
   FileCode,
   Image,
 } from "lucide-react";
+import { auth } from "@/auth";
+import { FETCH_EXAMPLE } from "@/lib/api-example";
 
 const features = [
   {
@@ -81,7 +83,10 @@ const useCases = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth();
+  const isSignedIn = !!session?.user;
+
   return (
     <div className="min-h-screen bg-background font-sans">
       {/* Navigation */}
@@ -101,14 +106,17 @@ export default function Home() {
             <a href="#api" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
               API
             </a>
-            <a href="#pricing" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-              Pricing
-            </a>
+            <Link href="/docs" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+              Docs
+            </Link>
           </div>
           <div className="flex items-center gap-3">
-            <button className="hidden rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block">
-              Sign In
-            </button>
+            <Link
+              href="/dashboard"
+              className="hidden rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
+            >
+              {isSignedIn ? "Dashboard" : "Sign in"}
+            </Link>
             <Link
               href="/editor"
               className="rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-medium text-white transition-all hover:opacity-90"
@@ -135,15 +143,16 @@ export default function Home() {
               <span>Pixel-perfect PDF generation</span>
             </div>
             <h1 className="animate-fade-up text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-              Convert{" "}
+              HTML to{" "}
               <span className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent">
-                RenderPDF
-              </span>{" "}
-              instantly
+                PDF
+              </span>
+              , instantly
             </h1>
             <p className="animate-fade-up animation-delay-100 mt-6 text-lg text-muted-foreground sm:text-xl">
-              Transform your HTML, CSS, and JavaScript into beautiful, print-ready PDF documents.
-              Perfect for invoices, reports, tickets, and more.
+              Write HTML and CSS, get a pixel-perfect, print-ready PDF back - in the browser editor
+              or with a single authenticated API call. No headless browser to manage, no fonts to
+              install.
             </p>
             <div className="animate-fade-up animation-delay-200 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
@@ -153,9 +162,12 @@ export default function Home() {
                 Try it Free
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
-              <button className="w-full rounded-xl border border-border bg-background px-8 py-4 text-lg font-semibold transition-all hover:bg-muted sm:w-auto">
+              <Link
+                href="/docs"
+                className="w-full rounded-xl border border-border bg-background px-8 py-4 text-center text-lg font-semibold transition-all hover:bg-muted sm:w-auto"
+              >
                 View Docs
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -249,9 +261,9 @@ export default function Home() {
       <section id="features" className="py-20 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Powerful PDF generation</h2>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Everything you need, nothing you don&apos;t</h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Everything you need to create stunning PDFs from HTML
+              Real CSS layout support, in the browser or via the API
             </p>
           </div>
           <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -279,7 +291,9 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Built for developers</h2>
-            <p className="mt-4 text-lg text-muted-foreground">Generate any type of document from your code</p>
+            <p className="mt-4 text-lg text-muted-foreground">
+              One conversion engine, three common document types to start from
+            </p>
           </div>
           <div className="mt-16 grid gap-8 md:grid-cols-3">
             {useCases.map((item) => (
@@ -298,16 +312,17 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Simple REST API</h2>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">A REST API, not just an editor</h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Integrate PDF generation into your app with just a few lines of code. Works with any programming language.
+                Generate the same PDFs from code. Create a client ID and secret from your dashboard,
+                then POST HTML and get a PDF back - from any language that can make an HTTP request.
               </p>
               <ul className="mt-8 space-y-4">
                 {[
-                  "Send HTML, get PDF back",
-                  "Custom headers, footers & page sizes",
-                  "Webhook notifications",
-                  "High availability & low latency",
+                  "Send HTML, get a PDF back",
+                  "HTTP Basic auth with client ID + client secret",
+                  "Custom page format, orientation & margins",
+                  "Plan-based rate limits per client",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3">
                     <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/10">
@@ -317,10 +332,13 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <button className="mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-6 py-3 font-semibold text-white transition-all hover:opacity-90">
-                Read the Docs
+              <Link
+                href="/docs"
+                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-6 py-3 font-semibold text-white transition-all hover:opacity-90"
+              >
+                Read the docs
                 <ArrowRight className="h-4 w-4" />
-              </button>
+              </Link>
             </div>
             <div className="overflow-hidden rounded-2xl border border-border bg-zinc-950 shadow-2xl">
               <div className="flex items-center gap-2 border-b border-zinc-800 px-4 py-3">
@@ -331,26 +349,8 @@ export default function Home() {
                 </div>
                 <span className="ml-4 text-sm text-zinc-400">api-example.js</span>
               </div>
-              <pre className="p-6 font-mono text-sm text-zinc-300">
-                <code>{`const response = await fetch(
-  'https://api.htmltopdf.app/convert',
-  {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer YOUR_API_KEY'
-    },
-    body: JSON.stringify({
-      html: '<h1>Hello World</h1>',
-      options: {
-        format: 'A4',
-        margin: '20mm'
-      }
-    })
-  }
-);
-
-const pdf = await response.blob();`}</code>
+              <pre className="overflow-x-auto p-6 font-mono text-sm text-zinc-300">
+                <code>{FETCH_EXAMPLE}</code>
               </pre>
             </div>
           </div>
@@ -361,9 +361,9 @@ const pdf = await response.blob();`}</code>
       <section className="bg-muted/30 py-20 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Enterprise-grade reliability</h2>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Secure and dependable</h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Built for scale with security as a top priority
+              Revocable API credentials and no lingering copies of your documents
             </p>
           </div>
           <div className="mt-16 grid gap-8 md:grid-cols-3">
@@ -417,7 +417,8 @@ const pdf = await response.blob();`}</code>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
               <Link href="/editor" className="transition-colors hover:text-foreground">Editor</Link>
-              <a href="#" className="transition-colors hover:text-foreground">Documentation</a>
+              <Link href="/docs" className="transition-colors hover:text-foreground">Documentation</Link>
+              <Link href="/dashboard" className="transition-colors hover:text-foreground">Dashboard</Link>
               <a href="#" className="transition-colors hover:text-foreground">Privacy</a>
               <a href="#" className="transition-colors hover:text-foreground">Terms</a>
             </div>

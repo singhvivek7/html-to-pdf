@@ -415,6 +415,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // own docs). This is what makes /dashboard/* redirect unauthenticated
     // visitors to sign-in instead of rendering the page for them.
     authorized: async ({ auth }) => !!auth,
+    // Auth.js's default database-strategy session callback only copies
+    // {name, email, image} from the adapter user onto session.user - id is
+    // dropped unless explicitly propagated here. Without this, every
+    // session.user.id downstream (Task 8's dashboard actions, Task 7's
+    // rate-limit-by-plan lookups if ever driven from a session instead of
+    // an API client) is undefined for every real signed-in user.
+    session: async ({ session, user }) => {
+      if (session.user) session.user.id = user.id;
+      return session;
+    },
   },
   events: {
     // New sign-ups start on whichever plan is currently flagged isDefault.
@@ -1044,6 +1054,7 @@ export function CreateClientForm() {
   const [newCredentials, setNewCredentials] = useState<{ clientId: string; clientSecret: string } | null>(
     null
   );
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -1073,17 +1084,24 @@ export function CreateClientForm() {
           </button>
         </div>
       ) : (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            startTransition(async () => {
-              const result = await createApiClientAction(name);
-              setNewCredentials({ clientId: result.clientId, clientSecret: result.clientSecret });
-              setName("");
-            });
-          }}
-          className="flex gap-2"
-        >
+        <div className="space-y-2">
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setError(null);
+              startTransition(async () => {
+                try {
+                  const result = await createApiClientAction(name);
+                  setNewCredentials({ clientId: result.clientId, clientSecret: result.clientSecret });
+                  setName("");
+                } catch {
+                  setError("Couldn't create the client. Please try again.");
+                }
+              });
+            }}
+            className="flex gap-2"
+          >
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -1097,7 +1115,8 @@ export function CreateClientForm() {
           >
             {isPending ? "Creating..." : "Create client"}
           </button>
-        </form>
+          </form>
+        </div>
       )}
     </div>
   );

@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
-      <h1 className="mb-1 text-2xl font-bold">API Clients</h1>
+      <h1 className="font-display mb-1 text-2xl font-bold">API Clients</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Signed in as {session?.user?.email ?? session?.user?.name}
       </p>
@@ -35,7 +35,7 @@ export default async function DashboardPage() {
             </div>
             {!client.revokedAt && (
               <form action={revokeApiClientAction.bind(null, client.id)}>
-                <button type="submit" className="text-sm text-red-600 hover:underline">
+                <button type="submit" className="text-sm text-destructive hover:underline">
                   Revoke
                 </button>
               </form>

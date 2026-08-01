@@ -1,60 +1,51 @@
 import Link from "next/link";
-import NextImage from "next/image";
-import {
-  FileText,
-  Code,
-  Palette,
-  Download,
-  Zap,
-  Shield,
-  Globe,
-  Layers,
-  ArrowRight,
-  Sparkles,
-  Monitor,
-  Smartphone,
-  FileCode,
-  Image,
-} from "lucide-react";
+import { Code, Gauge, KeyRound, Layers, Terminal, ShieldCheck, ArrowRight } from "lucide-react";
 import { auth } from "@/auth";
-import { FETCH_EXAMPLE } from "@/lib/api-example";
+import { SiteNav } from "@/components/site-nav";
+import { Hero } from "@/components/hero";
+import { ScrollReveal } from "@/components/scroll-reveal";
+import { AnimatedCounter } from "@/components/animated-counter";
+import { MotionCard } from "@/components/motion-card";
+import { MotionProvider } from "@/components/motion-provider";
+import { TerminalBlock } from "@/components/terminal-block";
+import { oswald, inter, jetbrainsMono } from "@/components/landing-fonts";
 
 const features = [
   {
     icon: Code,
-    title: "HTML & CSS Support",
-    description: "Full support for modern HTML5, CSS3, Flexbox, and Grid layouts",
-    color: "from-blue-500 to-cyan-500",
+    tag: "Run 01",
+    title: "Real HTML & CSS",
+    description: "Flexbox, Grid, custom fonts - whatever renders in Chromium renders in your PDF.",
   },
   {
-    icon: Palette,
-    title: "Custom Styling",
-    description: "Apply custom fonts, colors, and themes to your PDF output",
-    color: "from-purple-500 to-pink-500",
+    icon: Gauge,
+    tag: "Run 02",
+    title: "Plan-based rate limits",
+    description: "Each API client is capped per your plan - no surprise throttling, no shared queue.",
+  },
+  {
+    icon: KeyRound,
+    tag: "Run 03",
+    title: "Revocable credentials",
+    description: "Client ID + secret pairs, hashed at rest, revoked in one click from the dashboard.",
   },
   {
     icon: Layers,
-    title: "Multi-page Documents",
-    description: "Generate multi-page PDFs with automatic page breaks",
-    color: "from-orange-500 to-red-500",
+    tag: "Run 04",
+    title: "Format & margin control",
+    description: "A4, Letter, Legal, orientation, per-side margins - same options in the editor and the API.",
   },
   {
-    icon: Image,
-    title: "Image & Media",
-    description: "Embed images, SVGs, and charts directly in your PDFs",
-    color: "from-green-500 to-emerald-500",
+    icon: Terminal,
+    tag: "Run 05",
+    title: "One endpoint, any language",
+    description: "POST html, get PDF bytes back. No SDK required - HTTP Basic auth over a single route.",
   },
   {
-    icon: Globe,
-    title: "URL to PDF",
-    description: "Convert any webpage URL directly to a PDF document",
-    color: "from-yellow-500 to-orange-500",
-  },
-  {
-    icon: FileCode,
-    title: "API Access",
-    description: "Integrate with our REST API for automated PDF generation",
-    color: "from-indigo-500 to-purple-500",
+    icon: ShieldCheck,
+    tag: "Run 06",
+    title: "No lingering files",
+    description: "Documents render and stream back - nothing sits on disk after the response.",
   },
 ];
 
@@ -65,369 +56,120 @@ const stats = [
   { value: "Free", label: "To Start" },
 ];
 
-const useCases = [
-  {
-    icon: FileText,
-    title: "Invoices & Reports",
-    description: "Generate professional invoices, reports, and business documents",
-  },
-  {
-    icon: Monitor,
-    title: "Web Screenshots",
-    description: "Capture full-page screenshots of any website as PDF",
-  },
-  {
-    icon: Smartphone,
-    title: "Tickets & Receipts",
-    description: "Create mobile-friendly tickets, receipts, and confirmations",
-  },
-];
-
 export default async function Home() {
   const session = await auth();
   const isSignedIn = !!session?.user;
 
   return (
-    <div className="min-h-screen bg-background font-sans">
-      {/* Navigation */}
-      <nav className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <NextImage src="/favicon/icon.png" alt="RenderPDF" width={36} height={36} className="rounded-lg" />
-            <span className="text-xl font-bold">RenderPDF</span>
-          </div>
-          <div className="hidden items-center gap-8 md:flex">
-            <a href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-              Features
-            </a>
-            <a href="#use-cases" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-              Use Cases
-            </a>
-            <a href="#api" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-              API
-            </a>
-            <Link href="/docs" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-              Docs
-            </Link>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="hidden rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
-            >
-              {isSignedIn ? "Dashboard" : "Sign in"}
-            </Link>
-            <Link
-              href="/editor"
-              className="rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-medium text-white transition-all hover:opacity-90"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <div
+      className={`${oswald.variable} ${inter.variable} ${jetbrainsMono.variable} font-body min-h-screen bg-[#1C1B19] text-[#EFE9DD]`}
+    >
+      <MotionProvider>
+        <SiteNav isSignedIn={isSignedIn} />
+        <Hero />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-32">
-        {/* Background gradient */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute left-1/2 top-0 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-gradient-to-br from-orange-500/20 via-red-500/10 to-transparent blur-3xl" />
-          <div className="absolute right-0 top-1/4 h-[400px] w-[400px] rounded-full bg-gradient-to-bl from-purple-500/10 to-transparent blur-3xl" />
-          <div className="absolute left-0 bottom-0 h-[300px] w-[300px] rounded-full bg-gradient-to-tr from-blue-500/10 to-transparent blur-3xl" />
-        </div>
-
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="animate-fade-down mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-4 py-1.5 text-sm">
-              <Sparkles className="h-4 w-4 text-orange-500" />
-              <span>Pixel-perfect PDF generation</span>
-            </div>
-            <h1 className="animate-fade-up text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-              HTML to{" "}
-              <span className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent">
-                PDF
-              </span>
-              , instantly
-            </h1>
-            <p className="animate-fade-up animation-delay-100 mt-6 text-lg text-muted-foreground sm:text-xl">
-              Write HTML and CSS, get a pixel-perfect, print-ready PDF back - in the browser editor
-              or with a single authenticated API call. No headless browser to manage, no fonts to
-              install.
-            </p>
-            <div className="animate-fade-up animation-delay-200 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link
-                href="/editor"
-                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-orange-500/30 sm:w-auto"
-              >
-                Try it Free
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
-              <Link
-                href="/docs"
-                className="w-full rounded-xl border border-border bg-background px-8 py-4 text-center text-lg font-semibold transition-all hover:bg-muted sm:w-auto"
-              >
-                View Docs
-              </Link>
-            </div>
-          </div>
-
-          {/* Code Preview */}
-          <div className="animate-fade-up animation-delay-300 relative mx-auto mt-20 max-w-4xl">
-            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-              {/* Editor Header */}
-              <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-3">
-                <div className="flex gap-1.5">
-                  <div className="h-3 w-3 rounded-full bg-red-500" />
-                  <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                  <div className="h-3 w-3 rounded-full bg-green-500" />
-                </div>
-                <div className="ml-4 flex gap-1">
-                  <div className="rounded-t-lg bg-background px-4 py-1.5 text-sm font-medium">index.html</div>
-                  <div className="rounded-t-lg bg-transparent px-4 py-1.5 text-sm text-muted-foreground">style.css</div>
-                </div>
-              </div>
-              {/* Code Content */}
-              <div className="grid md:grid-cols-2">
-                <div className="border-r border-border bg-zinc-950 p-6 font-mono text-sm">
-                  <pre className="text-zinc-300">
-                    <code>{`<div class="invoice">
-  <h1>Invoice #1234</h1>
-  <div class="details">
-    <p>Date: Nov 28, 2025</p>
-    <p>Amount: $299.00</p>
-  </div>
-  <table class="items">
-    <tr>
-      <td>Web Design</td>
-      <td>$299.00</td>
-    </tr>
-  </table>
-</div>`}</code>
-                  </pre>
-                </div>
-                <div className="flex items-center justify-center bg-gradient-to-br from-muted/30 to-muted/10 p-8">
-                  <div className="w-full max-w-[200px] rounded-lg bg-white p-4 shadow-lg">
-                    <div className="mb-3 text-center">
-                      <div className="text-xs font-bold text-zinc-800">INVOICE #1234</div>
-                    </div>
-                    <div className="mb-3 space-y-1 text-[8px] text-zinc-600">
-                      <div>Date: Nov 28, 2025</div>
-                      <div>Amount: $299.00</div>
-                    </div>
-                    <div className="border-t border-zinc-200 pt-2">
-                      <div className="flex justify-between text-[8px]">
-                        <span className="text-zinc-600">Web Design</span>
-                        <span className="font-medium text-zinc-800">$299.00</span>
-                      </div>
-                    </div>
-                    <div className="mt-4 flex justify-center">
-                      <div className="rounded bg-gradient-to-r from-orange-500 to-red-500 px-2 py-0.5 text-[6px] font-medium text-white">
-                        PDF
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* Floating Elements */}
-            <div className="animate-bounce-slow absolute -left-8 top-1/4 hidden rounded-xl border border-border bg-card p-3 shadow-lg lg:block">
-              <Code className="h-6 w-6 text-blue-500" />
-            </div>
-            <div className="animate-bounce-slow animation-delay-200 absolute -right-8 top-1/3 hidden rounded-xl border border-border bg-card p-3 shadow-lg lg:block">
-              <FileText className="h-6 w-6 text-orange-500" />
-            </div>
-            <div className="animate-bounce-slow animation-delay-500 absolute -right-4 bottom-1/4 hidden rounded-xl border border-border bg-card p-3 shadow-lg lg:block">
-              <Download className="h-6 w-6 text-green-500" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="border-y border-border bg-muted/30 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl font-bold text-foreground sm:text-4xl">{stat.value}</div>
-                <div className="mt-1 text-sm text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-20 sm:py-32">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Everything you need, nothing you don&apos;t</h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Real CSS layout support, in the browser or via the API
-            </p>
-          </div>
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
-              <div
-                key={feature.title}
-                className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:border-orange-500/50 hover:shadow-lg"
-              >
-                <div
-                  className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${feature.color} p-3 text-white`}
-                >
-                  <feature.icon className="h-6 w-6" />
-                </div>
-                <h3 className="text-xl font-semibold">{feature.title}</h3>
-                <p className="mt-2 text-muted-foreground">{feature.description}</p>
-                <div className="absolute inset-0 -z-10 bg-gradient-to-br from-orange-500/5 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Use Cases Section */}
-      <section id="use-cases" className="bg-muted/30 py-20 sm:py-32">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Built for developers</h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              One conversion engine, three common document types to start from
-            </p>
-          </div>
-          <div className="mt-16 grid gap-8 md:grid-cols-3">
-            {useCases.map((item) => (
-              <div key={item.title} className="rounded-2xl border border-border bg-card p-6 text-center">
-                <item.icon className="mx-auto mb-4 h-12 w-12 text-orange-500" />
-                <h3 className="text-xl font-semibold">{item.title}</h3>
-                <p className="mt-2 text-muted-foreground">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* API Section */}
-      <section id="api" className="py-20 sm:py-32">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">A REST API, not just an editor</h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Generate the same PDFs from code. Create a client ID and secret from your dashboard,
-                then POST HTML and get a PDF back - from any language that can make an HTTP request.
+        {/* Feature Grid */}
+        <section id="features" className="py-20 sm:py-32">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ScrollReveal className="mx-auto max-w-2xl text-center">
+              <h2 className="font-display text-3xl font-bold sm:text-4xl">Every run set to the same standard</h2>
+              <p className="font-body mt-4 text-lg text-[#A29A8C]">
+                Everything you need to ship PDF generation, nothing you have to configure
               </p>
-              <ul className="mt-8 space-y-4">
-                {[
-                  "Send HTML, get a PDF back",
-                  "HTTP Basic auth with client ID + client secret",
-                  "Custom page format, orientation & margins",
-                  "Plan-based rate limits per client",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/10">
-                      <Zap className="h-4 w-4 text-green-500" />
-                    </div>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/docs"
-                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-6 py-3 font-semibold text-white transition-all hover:opacity-90"
-              >
-                Read the docs
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="overflow-hidden rounded-2xl border border-border bg-zinc-950 shadow-2xl">
-              <div className="flex items-center gap-2 border-b border-zinc-800 px-4 py-3">
-                <div className="flex gap-1.5">
-                  <div className="h-3 w-3 rounded-full bg-red-500" />
-                  <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                  <div className="h-3 w-3 rounded-full bg-green-500" />
-                </div>
-                <span className="ml-4 text-sm text-zinc-400">api-example.js</span>
-              </div>
-              <pre className="overflow-x-auto p-6 font-mono text-sm text-zinc-300">
-                <code>{FETCH_EXAMPLE}</code>
-              </pre>
+            </ScrollReveal>
+            <div className="mt-16 grid gap-px border border-[#EFE9DD]/[0.12] bg-[#EFE9DD]/[0.12] sm:grid-cols-2 lg:grid-cols-3">
+              {features.map((feature, i) => (
+                <ScrollReveal key={feature.title} delay={i * 70}>
+                  <MotionCard className="h-full bg-[#242220] p-6">
+                    <span className="font-mono-accent mb-3 block text-xs uppercase tracking-widest text-[#C4763B]">
+                      {feature.tag}
+                    </span>
+                    <feature.icon className="mb-3 h-5 w-5 text-[#C4763B]" />
+                    <h3 className="font-display text-lg font-semibold">{feature.title}</h3>
+                    <p className="font-body mt-2 text-sm text-[#A29A8C]">
+                      {feature.description}
+                    </p>
+                  </MotionCard>
+                </ScrollReveal>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Trust Section */}
-      <section className="bg-muted/30 py-20 sm:py-32">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Secure and dependable</h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Revocable API credentials and no lingering copies of your documents
-            </p>
-          </div>
-          <div className="mt-16 grid gap-8 md:grid-cols-3">
-            <div className="rounded-2xl border border-border bg-card p-6 text-center">
-              <Shield className="mx-auto mb-4 h-12 w-12 text-green-500" />
-              <h3 className="text-xl font-semibold">Secure by Default</h3>
-              <p className="mt-2 text-muted-foreground">SSL encryption & files auto-deleted after processing</p>
-            </div>
-            <div className="rounded-2xl border border-border bg-card p-6 text-center">
-              <Globe className="mx-auto mb-4 h-12 w-12 text-blue-500" />
-              <h3 className="text-xl font-semibold">Global CDN</h3>
-              <p className="mt-2 text-muted-foreground">Distributed infrastructure for low latency worldwide</p>
-            </div>
-            <div className="rounded-2xl border border-border bg-card p-6 text-center">
-              <Zap className="mx-auto mb-4 h-12 w-12 text-yellow-500" />
-              <h3 className="text-xl font-semibold">Lightning Fast</h3>
-              <p className="mt-2 text-muted-foreground">Average generation time under 2 seconds</p>
+        {/* Built for Builders */}
+        <section id="builders" className="border-y border-[#EFE9DD]/[0.12] bg-[#242220] py-20 sm:py-32">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid items-center gap-12 lg:grid-cols-2">
+              <ScrollReveal>
+                <h2 className="font-display text-3xl font-bold sm:text-4xl">Built for builders</h2>
+                <p className="font-body mt-4 text-lg text-[#A29A8C]">
+                  No wizard, no template DSL. Authenticate with a client ID and secret, POST your
+                  markup, get PDF bytes back. Automate it in your pipeline exactly like this.
+                </p>
+                <Link
+                  href="/docs"
+                  className="font-display mt-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[#C4763B]"
+                >
+                  Read the API docs
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </ScrollReveal>
+              <ScrollReveal delay={150}>
+                <TerminalBlock />
+              </ScrollReveal>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Section */}
-      <section className="relative overflow-hidden py-20 sm:py-32">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-orange-500/10 via-red-500/5 to-pink-500/10" />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Start generating PDFs today</h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Try our free editor or integrate with your app using our API.
+        {/* Stats Bar */}
+        <section className="border-b border-[#EFE9DD]/[0.12] py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+              {stats.map((stat, i) => (
+                <ScrollReveal key={stat.label} delay={i * 80} className="text-center">
+                  <AnimatedCounter
+                    value={stat.value}
+                    className="font-display block text-3xl font-bold text-[#C4763B] sm:text-4xl"
+                  />
+                  <div className="font-body mt-1 text-sm text-[#A29A8C]">{stat.label}</div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Band */}
+        <section className="py-20 text-center sm:py-32">
+          <ScrollReveal className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
+            <h2 className="font-display text-3xl font-bold sm:text-4xl">Your first run is on us</h2>
+            <p className="font-body mt-4 text-lg text-[#A29A8C]">
+              Free editor, no signup. API access takes one client credential pair.
             </p>
             <Link
               href="/editor"
-              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-orange-500/30"
+              className="font-display mt-8 inline-flex items-center gap-2 bg-[#C4763B] px-8 py-4 text-base font-semibold uppercase tracking-wide text-[#1C1B19] transition-transform hover:-translate-y-0.5"
             >
-              Open Editor
+              Start the press
               <ArrowRight className="h-5 w-5" />
             </Link>
-            <p className="mt-4 text-sm text-muted-foreground">No signup required</p>
-          </div>
-        </div>
-      </section>
+          </ScrollReveal>
+        </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-muted/30 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-            <div className="flex items-center gap-2">
-              <NextImage src="/favicon/icon.png" alt="RenderPDF" width={32} height={32} className="rounded-lg" />
-              <span className="font-bold">RenderPDF</span>
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-              <Link href="/editor" className="transition-colors hover:text-foreground">Editor</Link>
-              <Link href="/docs" className="transition-colors hover:text-foreground">Documentation</Link>
-              <Link href="/dashboard" className="transition-colors hover:text-foreground">Dashboard</Link>
-              <a href="#" className="transition-colors hover:text-foreground">Privacy</a>
-              <a href="#" className="transition-colors hover:text-foreground">Terms</a>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} RenderPDF. All rights reserved.
+        {/* Footer */}
+        <footer className="border-t border-[#EFE9DD]/[0.12] py-8">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6 lg:px-8">
+            <p className="font-body text-sm text-[#A29A8C]">
+              &copy; {new Date().getFullYear()} RenderPDF
             </p>
+            <div className="flex items-center gap-6 text-sm text-[#A29A8C]">
+              <Link href="/editor" className="transition-colors hover:text-[#EFE9DD]">Editor</Link>
+              <Link href="/docs" className="transition-colors hover:text-[#EFE9DD]">Docs</Link>
+              <Link href="/dashboard" className="transition-colors hover:text-[#EFE9DD]">Dashboard</Link>
+            </div>
+            <p className="font-mono-accent text-xs text-[#A29A8C]">v0.1.0 · Next.js 16</p>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </MotionProvider>
 
       {/* JSON-LD Structured Data */}
       <script

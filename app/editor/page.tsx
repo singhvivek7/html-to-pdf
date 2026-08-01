@@ -3,7 +3,8 @@
 import { useState, useRef, useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import Image from "next/image";
+import { html as htmlLang } from "@codemirror/lang-html";
+import { vscodeDark } from "@uiw/codemirror-theme-vscode";
 import {
   Download,
   Upload,
@@ -23,13 +24,20 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   DEFAULT_PDF_CONFIG,
   PDF_FORMATS,
   getPageDimensionsMm,
   type PdfConfig,
 } from "@/lib/pdf-config";
 
-const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
+const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), {
   ssr: false,
   loading: () => (
     <div className="flex h-full w-full items-center justify-center bg-zinc-950 text-sm text-zinc-500">
@@ -39,6 +47,8 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
 });
 
 const defaultHTML = ``;
+
+type EditorMode = "textarea" | "codemirror";
 
 const DESKTOP_QUERY = "(min-width: 768px)";
 
@@ -76,6 +86,7 @@ export default function EditorPage() {
   const [isFullPreview, setIsFullPreview] = useState(false);
   const [pdfConfig, setPdfConfig] = useState<PdfConfig>(DEFAULT_PDF_CONFIG);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [editorMode, setEditorMode] = useState<EditorMode>("textarea");
   const previewRef = useRef<HTMLIFrameElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isDesktop = useIsDesktop();
@@ -144,28 +155,45 @@ export default function EditorPage() {
     <div className={wrapperClassName}>
       <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-2">
         <div className="flex items-center gap-2 text-sm font-medium">
-          <FileText className="h-4 w-4 text-orange-500" />
+          <FileText className="h-4 w-4 text-primary" />
           <span>index.html</span>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {html.length.toLocaleString()} characters
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {html.length.toLocaleString()} characters
+          </span>
+          <Select
+            value={editorMode}
+            onValueChange={(value) => setEditorMode(value as EditorMode)}
+          >
+            <SelectTrigger size="sm" className="h-7 text-xs" title="Editor">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="textarea">Plain Text</SelectItem>
+              <SelectItem value="codemirror">Code Editor</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="relative flex-1">
-        <MonacoEditor
-          height="100%"
-          language="html"
-          theme="vs-dark"
-          value={html}
-          onChange={(value) => setHtml(value ?? "")}
-          options={{
-            fontSize: 13,
-            minimap: { enabled: false },
-            wordWrap: "on",
-            scrollBeyondLastLine: false,
-            automaticLayout: true,
-          }}
-        />
+        {editorMode === "codemirror" ? (
+          <CodeMirror
+            height="100%"
+            theme={vscodeDark}
+            extensions={[htmlLang()]}
+            value={html}
+            onChange={(value) => setHtml(value)}
+            className="h-full text-[13px] [&_.cm-editor]:h-full"
+          />
+        ) : (
+          <textarea
+            value={html}
+            onChange={(e) => setHtml(e.target.value)}
+            spellCheck={false}
+            className="h-full w-full resize-none bg-zinc-950 p-4 font-mono text-[13px] text-zinc-100 outline-none"
+          />
+        )}
       </div>
     </div>
   );
@@ -174,7 +202,7 @@ export default function EditorPage() {
     <div className={wrapperClassName}>
       <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-2">
         <div className="flex items-center gap-2 text-sm font-medium">
-          <Eye className="h-4 w-4 text-blue-500" />
+          <Eye className="h-4 w-4 text-primary" />
           <span>Preview</span>
         </div>
         {showFullscreenToggle && (
@@ -238,9 +266,11 @@ export default function EditorPage() {
             <span className="hidden sm:inline">Back</span>
           </Link>
           <div className="h-6 w-px bg-border" />
-          <div className="flex items-center gap-2">
-            <Image src="/favicon/icon.png" alt="RenderPDF" width={32} height={32} className="rounded-lg" />
-            <span className="font-semibold">HTML to PDF</span>
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-primary">
+              <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+            </span>
+            <span className="font-display text-sm font-semibold uppercase tracking-wide">RenderPDF</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -280,7 +310,7 @@ export default function EditorPage() {
                   onClick={() => setIsSettingsOpen(false)}
                 />
                 <div className="absolute right-0 z-20 mt-2 w-72 rounded-lg border border-border bg-card p-4 shadow-lg">
-                  <h3 className="mb-3 text-sm font-semibold">PDF Settings</h3>
+                  <h3 className="font-display mb-3 text-sm font-semibold uppercase tracking-wide">PDF Settings</h3>
 
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">
                     Page Size
@@ -314,7 +344,7 @@ export default function EditorPage() {
                         }
                         className={`flex-1 rounded-md border px-2 py-1.5 text-sm capitalize transition-colors ${
                           pdfConfig.orientation === orientation
-                            ? "border-orange-500 bg-orange-500/10 text-orange-600"
+                            ? "border-primary bg-primary/10 text-primary"
                             : "border-border bg-background hover:bg-muted"
                         }`}
                       >
@@ -357,7 +387,7 @@ export default function EditorPage() {
           <button
             onClick={handleDownloadPDF}
             disabled={isGenerating}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 px-4 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="font-display flex items-center gap-2 rounded-lg bg-primary px-4 py-1.5 text-sm font-medium uppercase tracking-wide text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {isGenerating ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -378,7 +408,7 @@ export default function EditorPage() {
             onClick={() => setActiveTab("code")}
             className={`flex flex-1 items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === "code"
-                ? "border-b-2 border-orange-500 text-foreground"
+                ? "border-b-2 border-primary text-foreground"
                 : "text-muted-foreground"
             }`}
           >
@@ -389,7 +419,7 @@ export default function EditorPage() {
             onClick={() => setActiveTab("preview")}
             className={`flex flex-1 items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === "preview"
-                ? "border-b-2 border-orange-500 text-foreground"
+                ? "border-b-2 border-primary text-foreground"
                 : "text-muted-foreground"
             }`}
           >

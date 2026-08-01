@@ -34,7 +34,7 @@ To use the public API, a user must sign in via GitHub and create an API client f
 - `lib/models/plans.ts` — new. Pricing-plan CRUD: create, list all, list active, deprecate, get the default plan.
 - `auth.ts` (repo root) — new. Auth.js v5 config: Prisma adapter, GitHub provider, database sessions, assigns the default plan to new users.
 - `app/api/auth/[...nextauth]/route.ts` — new. Re-exports Auth.js route handlers.
-- `middleware.ts` (repo root) — new. Gates `/dashboard/*` behind a session.
+- `proxy.ts` (repo root) — new. Gates `/dashboard/*` behind a session (Next.js 16's `proxy.ts` convention, not the deprecated `middleware.ts` — Edge-runtime `middleware.ts` can't run Prisma).
 - `lib/models/api-clients.ts` — new. API client-credential CRUD: create (returns plaintext secret once), list, revoke, look-up-by-credentials-for-auth.
 - `lib/rate-limit.ts` — new. Per-API-client fixed-window rate limiter backed by a Prisma model with a TTL index (created via raw command), parameterized by the caller's resolved plan limit.
 - `lib/generate-pdf.ts` — new. Extracted `getBrowser()` + `generatePdf(html, config)` shared by both PDF routes.
@@ -382,7 +382,7 @@ git commit -m "feat: add pricing plan data model (create/list/deprecate/default)
 **Files:**
 - Create: `auth.ts`
 - Create: `app/api/auth/[...nextauth]/route.ts`
-- Create: `middleware.ts`
+- Create: `proxy.ts`
 - Modify: `package.json` (add `next-auth@beta`, `@auth/prisma-adapter`)
 
 **Interfaces:**
@@ -433,10 +433,20 @@ export const { GET, POST } = handlers;
 
 Save as `app/api/auth/[...nextauth]/route.ts`.
 
-- [ ] **Step 4: Write `middleware.ts`**
+- [ ] **Step 4: Write `proxy.ts`**
+
+Next.js 16 deprecated `middleware.ts` in favor of `proxy.ts` (renamed
+file + export). This project is on Next.js 16.2.10, so use the new
+convention, NOT `middleware.ts` — the difference isn't cosmetic:
+`middleware.ts` still defaults to the Edge runtime for backward
+compatibility, and Prisma's query engine cannot run on Edge (confirmed:
+`bun dev`/`bun run build` hard-fail with `middleware.ts` wrapping
+`auth()`, since `auth()` pulls in the Prisma adapter). `proxy.ts` defaults
+to the Node.js runtime, where Prisma works fine — that's the actual fix,
+not a workaround.
 
 ```ts
-export { auth as middleware } from "@/auth";
+export { auth as proxy } from "@/auth";
 
 export const config = {
   matcher: ["/dashboard/:path*"],
@@ -456,14 +466,15 @@ Add real `DATABASE_URL`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `AUTH_SECRET` t
 npx prisma db push
 bun dev
 curl -s http://localhost:3000/api/auth/providers
+curl -s -o /dev/null -w "dashboard while signed out: HTTP %{http_code}\n" http://localhost:3000/dashboard
 ```
 
-Expected: JSON response listing `github` as a provider (confirms Auth.js initialized without throwing). Full login can only be verified by visiting `http://localhost:3000/api/auth/signin` in a real browser and completing the GitHub OAuth flow.
+Expected: the providers call returns JSON listing `github` (confirms Auth.js initialized without throwing, and that `proxy.ts` didn't crash the server the way `middleware.ts` did). The `/dashboard` call while signed out should redirect (302, or 200 after curl follows to a sign-in page depending on `-L`) rather than 500. Full login can only be verified by visiting `http://localhost:3000/api/auth/signin` in a real browser and completing the GitHub OAuth flow.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add auth.ts app/api/auth middleware.ts package.json bun.lock
+git add auth.ts app/api/auth proxy.ts package.json bun.lock
 git commit -m "feat: add Auth.js v5 with GitHub OAuth and Prisma sessions"
 ```
 
@@ -1142,7 +1153,7 @@ Expected: no errors.
 
 - [ ] **Step 5: Manual verification (requires a real browser + a completed GitHub login from Task 3)**
 
-Visit `http://localhost:3000/dashboard` while signed out - expect a redirect (via `middleware.ts`) to the sign-in flow. Sign in with GitHub, then visit `/dashboard` again - expect the client list UI, a working "Create client" button that shows a one-time `client_id` + `client_secret` pair, and a working "Revoke" button.
+Visit `http://localhost:3000/dashboard` while signed out - expect a redirect (via `proxy.ts`) to the sign-in flow. Sign in with GitHub, then visit `/dashboard` again - expect the client list UI, a working "Create client" button that shows a one-time `client_id` + `client_secret` pair, and a working "Revoke" button.
 
 - [ ] **Step 6: Commit**
 

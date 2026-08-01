@@ -20,20 +20,23 @@ To use the public API, a user must sign in via GitHub and create an API client f
 - Brand color stays `#ea580c` (orange-600); production domain is `https://renderpdf.vercel.app`. Docs and landing page must reference the real domain, not any fictitious one.
 - `app/api/convert` (public API) must NOT set `Content-Disposition: attachment` (API consumers want the raw blob, not a forced browser download) — this differs from the existing `app/api/generate-pdf` route, which is correct to keep forcing download since it backs the in-browser editor's Download button.
 - MongoDB TTL indexes are a Mongo-native feature Prisma's schema DSL does not expose directly for this connector — create the TTL index via `prisma.$runCommandRaw` (a `createIndexes` raw command), not by hand-rolling a second raw MongoDB client.
-- External setup the user must perform before Tasks 2–7 can be verified live (I cannot provision these): a MongoDB cluster (e.g. MongoDB Atlas free tier) → `DATABASE_URL`; a GitHub OAuth App (github.com → Settings → Developer settings → OAuth Apps, callback URL `http://localhost:3000/api/auth/callback/github` for dev) → `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET`; a generated `AUTH_SECRET` (`npx auth secret` prints one). Task 1 documents this exactly; nothing after Task 1 works end-to-end without it, though code still typechecks/lints without live credentials (Prisma Client generation only needs `schema.prisma`, not a live connection).
+- Pricing plans are configurable from the backend only in this plan — no admin UI is built now (the user will build one later). A `Plan` has a `status` of `"active"` or `"deprecated"`: deprecating a plan never deletes it or reassigns its existing users, it only removes it from `getActivePlans()` (so it can no longer be assigned to new users). Launching a new plan is just `createPlan(...)`. Exactly one plan should have `isDefault: true` at a time — that's what new GitHub sign-ups are assigned via Task 3's `events.createUser`. Each API client's rate limit (Task 5) is resolved from its owning user's plan, not a hardcoded constant.
+- Prisma is pinned to the exact `6.19.2` release, not `@latest`/`^7.x` — see Task 1's Step 1 for why (Prisma 7 requires a driver adapter for every provider, including MongoDB, and no MongoDB driver adapter package exists).
+- External setup the user must perform before Tasks 3–8 can be verified live (I cannot provision these): a MongoDB cluster (e.g. MongoDB Atlas free tier) → `DATABASE_URL`; a GitHub OAuth App (github.com → Settings → Developer settings → OAuth Apps, callback URL `http://localhost:3000/api/auth/callback/github` for dev) → `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET`; a generated `AUTH_SECRET` (`npx auth secret` prints one). Task 1 documents this exactly; nothing after Task 1 works end-to-end without it, though code still typechecks/lints without live credentials (Prisma Client generation only needs `schema.prisma`, not a live connection).
 
 ---
 
 ## File Structure
 
-- `prisma/schema.prisma` — new. Datasource (`mongodb` provider, `DATABASE_URL`), generator, and models: `User`, `Account`, `Session` (Auth.js Prisma-adapter shape), `ApiClient` (client credential pairs), `RateLimitWindow`.
+- `prisma/schema.prisma` — new. Datasource (`mongodb` provider, `DATABASE_URL`), generator, and models: `User`, `Account`, `Session` (Auth.js Prisma-adapter shape), `Plan` (pricing plans), `ApiClient` (client credential pairs), `RateLimitWindow`.
 - `lib/prisma.ts` — new. Cached `PrismaClient` singleton (survives Next dev HMR).
 - `.env.example` — new. Documents every required env var with a one-line description.
-- `auth.ts` (repo root) — new. Auth.js v5 config: Prisma adapter, GitHub provider, database sessions.
+- `lib/models/plans.ts` — new. Pricing-plan CRUD: create, list all, list active, deprecate, get the default plan.
+- `auth.ts` (repo root) — new. Auth.js v5 config: Prisma adapter, GitHub provider, database sessions, assigns the default plan to new users.
 - `app/api/auth/[...nextauth]/route.ts` — new. Re-exports Auth.js route handlers.
 - `middleware.ts` (repo root) — new. Gates `/dashboard/*` behind a session.
 - `lib/models/api-clients.ts` — new. API client-credential CRUD: create (returns plaintext secret once), list, revoke, look-up-by-credentials-for-auth.
-- `lib/rate-limit.ts` — new. Per-API-client fixed-window rate limiter backed by a Prisma model with a TTL index (created via raw command).
+- `lib/rate-limit.ts` — new. Per-API-client fixed-window rate limiter backed by a Prisma model with a TTL index (created via raw command), parameterized by the caller's resolved plan limit.
 - `lib/generate-pdf.ts` — new. Extracted `getBrowser()` + `generatePdf(html, config)` shared by both PDF routes.
 - `app/api/generate-pdf/route.ts` — modify. Delegates to `lib/generate-pdf.ts` instead of owning the Puppeteer launch logic.
 - `lib/pdf-config.ts` — modify. Add `publicOptionsToPdfConfig()` mapping the public API's simpler `{format, orientation, margin}` shape (margin as a single `"20mm"`-style string, or per-side object) onto the existing internal `PdfConfig`.
@@ -57,14 +60,24 @@ To use the public API, a user must sign in via GitHub and create an API client f
 - Modify: `package.json` (add `prisma`, `@prisma/client`; add `postinstall`/`db:push` scripts)
 
 **Interfaces:**
-- Produces: `export default prisma: PrismaClient` from `lib/prisma.ts`, imported by every later task that touches the database. Produces the `ApiClient` and `RateLimitWindow` Prisma models consumed by Tasks 3 and 4, and the Auth.js-shaped `User`/`Account`/`Session` models consumed by Task 2's `@auth/prisma-adapter`.
+- Produces: `export default prisma: PrismaClient` from `lib/prisma.ts`, imported by every later task that touches the database. Produces the `Plan`, `ApiClient`, and `RateLimitWindow` Prisma models consumed by Tasks 2, 4, and 5, and the Auth.js-shaped `User`/`Account`/`Session` models consumed by Task 3's `@auth/prisma-adapter`.
 
-- [x] **Step 1: Install Prisma**
+- [x] **Step 1: Install Prisma, pinned to the 6.x line**
 
 ```bash
-bun add -d prisma
-bun add @prisma/client
+bun add -d prisma@6.19.2
+bun add @prisma/client@6.19.2
 ```
+
+Pin the exact version — do not use `@latest`/`^7.x`. Prisma 7 made a driver
+`adapter` mandatory in the `PrismaClient` constructor for every provider
+(confirmed against the Prisma 7 docs and source: `PrismaClientInitializationError`
+is thrown unconditionally when neither `adapter` nor `accelerateUrl` is
+passed), and no `@prisma/adapter-mongodb` package exists — so MongoDB has no
+working driver adapter under Prisma 7 at all. Prisma 6.19.2 is the last line
+where a bare `new PrismaClient()` reading `url = env("DATABASE_URL")` from
+the schema still works for MongoDB, matching this task's `lib/prisma.ts`.
+Revisit this pin if/when Prisma ships a MongoDB driver adapter.
 
 - [x] **Step 2: Write `prisma/schema.prisma`**
 
@@ -90,6 +103,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
   apiClients    ApiClient[]
+  planId        String?   @db.ObjectId
+  plan          Plan?     @relation(fields: [planId], references: [id])
 }
 
 model Account {
@@ -151,6 +166,25 @@ model RateLimitWindow {
   id        String   @id @map("_id")
   count     Int
   expiresAt DateTime
+}
+
+// A pricing plan, configurable from the backend (Task 2's lib/models/plans.ts)
+// with no UI yet - the UI comes later. status lets an operator deprecate an
+// old plan and launch a new one without deleting history: deprecated plans
+// stay attached to whichever users already have them, they just stop being
+// offered to new sign-ups. requestsPerMinute is the per-API-client rate
+// limit Task 5's rate limiter enforces for users on this plan.
+model Plan {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  slug              String    @unique
+  priceCents        Int
+  requestsPerMinute Int
+  isDefault         Boolean   @default(false)
+  status            String    @default("active")
+  createdAt         DateTime  @default(now())
+  deprecatedAt      DateTime?
+  users             User[]
 }
 ```
 
@@ -223,7 +257,127 @@ git commit -m "feat: add Prisma schema (MongoDB) and client singleton"
 
 ---
 
-### Task 2: Auth.js v5 with GitHub OAuth + Prisma adapter
+### Task 2: Pricing plan data model
+
+**Files:**
+- Create: `lib/models/plans.ts`
+
+**Interfaces:**
+- Consumes: `prisma` from `lib/prisma.ts` (Task 1), the `Plan` model (Task 1).
+- Produces: `createPlan(input): Promise<Plan>`, `listPlans(): Promise<Plan[]>`, `listActivePlans(): Promise<Plan[]>`, `deprecatePlan(planId: string): Promise<void>`, `getDefaultPlan(): Promise<Plan | null>`, `getRequestsPerMinuteForUser(userId: string): Promise<number>` — `getDefaultPlan` is consumed by Task 3's `events.createUser`; `getRequestsPerMinuteForUser` is consumed by Task 7's rate-limit lookup.
+
+- [ ] **Step 1: Write `lib/models/plans.ts`**
+
+```ts
+import prisma from "@/lib/prisma";
+
+export interface CreatePlanInput {
+  name: string;
+  slug: string;
+  priceCents: number;
+  requestsPerMinute: number;
+  isDefault?: boolean;
+}
+
+// Configurable from the backend only for now (no admin UI yet). Launching a
+// new plan is just calling this; it never touches existing plans or users.
+export async function createPlan(input: CreatePlanInput) {
+  return prisma.plan.create({
+    data: {
+      name: input.name,
+      slug: input.slug,
+      priceCents: input.priceCents,
+      requestsPerMinute: input.requestsPerMinute,
+      isDefault: input.isDefault ?? false,
+    },
+  });
+}
+
+export async function listPlans() {
+  return prisma.plan.findMany({ orderBy: { createdAt: "asc" } });
+}
+
+export async function listActivePlans() {
+  return prisma.plan.findMany({ where: { status: "active" }, orderBy: { createdAt: "asc" } });
+}
+
+// Deprecating a plan never deletes it or reassigns the users already on it -
+// it only stops the plan from being offered to new sign-ups (it drops out of
+// listActivePlans()/getDefaultPlan() results).
+export async function deprecatePlan(planId: string) {
+  await prisma.plan.update({
+    where: { id: planId },
+    data: { status: "deprecated", deprecatedAt: new Date() },
+  });
+}
+
+export async function getDefaultPlan() {
+  return prisma.plan.findFirst({ where: { isDefault: true, status: "active" } });
+}
+
+// Fallback used only when a user has no plan assigned (e.g. created before
+// any plan existed, or events.createUser ran with no default plan seeded
+// yet) - keeps the public API's rate limiter from ever having an undefined
+// limit to compare against.
+const FALLBACK_REQUESTS_PER_MINUTE = 10;
+
+export async function getRequestsPerMinuteForUser(userId: string): Promise<number> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, include: { plan: true } });
+  return user?.plan?.requestsPerMinute ?? FALLBACK_REQUESTS_PER_MINUTE;
+}
+```
+
+- [ ] **Step 2: Verify it typechecks**
+
+Run: `npx tsc --noEmit`
+Expected: no errors.
+
+- [ ] **Step 3: Manual verification script (requires `DATABASE_URL` in `.env.local`, schema pushed via `npx prisma db push`)**
+
+```bash
+cat > /tmp/verify-plans.mjs << 'SCRIPT'
+import { createPlan, listPlans, listActivePlans, deprecatePlan, getDefaultPlan, getRequestsPerMinuteForUser } from "./lib/models/plans.ts";
+
+const free = await createPlan({ name: "Free", slug: "free", priceCents: 0, requestsPerMinute: 10, isDefault: true });
+console.log("created free plan:", free);
+
+const pro = await createPlan({ name: "Pro", slug: "pro", priceCents: 1900, requestsPerMinute: 120 });
+console.log("created pro plan:", pro);
+
+const defaultPlan = await getDefaultPlan();
+console.assert(defaultPlan?.slug === "free", "FAIL: default plan should be free");
+
+const active = await listActivePlans();
+console.assert(active.length === 2, "FAIL: expected 2 active plans");
+
+await deprecatePlan(free.id);
+const afterDeprecate = await listActivePlans();
+console.assert(afterDeprecate.length === 1 && afterDeprecate[0].slug === "pro", "FAIL: free should no longer be active");
+
+const all = await listPlans();
+console.assert(all.length === 2, "FAIL: deprecating should not delete the plan");
+
+const fallbackLimit = await getRequestsPerMinuteForUser("000000000000000000000099"); // no such user
+console.assert(fallbackLimit === 10, "FAIL: planless/nonexistent user should get the fallback limit");
+
+console.log("All assertions passed");
+process.exit(0);
+SCRIPT
+npx tsx /tmp/verify-plans.mjs
+```
+
+Expected: `All assertions passed`, no `FAIL` lines. Delete `/tmp/verify-plans.mjs` afterward. Also manually seed at least one `isDefault: true` active plan in the real database before Task 3 is verified live — without one, `events.createUser` has nothing to assign and new users are created with `planId: null`.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add lib/models/plans.ts
+git commit -m "feat: add pricing plan data model (create/list/deprecate/default)"
+```
+
+---
+
+### Task 3: Auth.js v5 with GitHub OAuth + Prisma adapter
 
 **Files:**
 - Create: `auth.ts`
@@ -232,8 +386,8 @@ git commit -m "feat: add Prisma schema (MongoDB) and client singleton"
 - Modify: `package.json` (add `next-auth@beta`, `@auth/prisma-adapter`)
 
 **Interfaces:**
-- Consumes: `prisma` from `lib/prisma.ts` (Task 1), the `User`/`Account`/`Session`/`VerificationToken` models (Task 1).
-- Produces: `auth()` (server-side session getter, used by Task 7's dashboard page and Task 6's server actions), `handlers` (used by the route file), `signIn`/`signOut` (used by any sign-in button).
+- Consumes: `prisma` from `lib/prisma.ts` (Task 1), the `User`/`Account`/`Session`/`VerificationToken` models (Task 1), `getDefaultPlan` from `lib/models/plans.ts` (Task 2).
+- Produces: `auth()` (server-side session getter, used by Task 8's dashboard page and Task 7's server actions), `handlers` (used by the route file), `signIn`/`signOut` (used by any sign-in button).
 
 - [ ] **Step 1: Install Auth.js and its Prisma adapter**
 
@@ -248,11 +402,24 @@ import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma from "@/lib/prisma";
+import { getDefaultPlan } from "@/lib/models/plans";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [GitHub],
   session: { strategy: "database" },
+  events: {
+    // New sign-ups start on whichever plan is currently flagged isDefault.
+    // If none is seeded yet, the user is left planless rather than failing
+    // sign-in - the rate limiter (Task 5) falls back to a hardcoded floor
+    // in that case.
+    async createUser({ user }) {
+      const defaultPlan = await getDefaultPlan();
+      if (defaultPlan && user.id) {
+        await prisma.user.update({ where: { id: user.id }, data: { planId: defaultPlan.id } });
+      }
+    },
+  },
 });
 ```
 
@@ -302,14 +469,14 @@ git commit -m "feat: add Auth.js v5 with GitHub OAuth and Prisma sessions"
 
 ---
 
-### Task 3: API client-credential data model
+### Task 4: API client-credential data model
 
 **Files:**
 - Create: `lib/models/api-clients.ts`
 
 **Interfaces:**
 - Consumes: `prisma` from `lib/prisma.ts` (Task 1), the `ApiClient` model (Task 1).
-- Produces: `createApiClient(userId: string, name: string): Promise<{id: string, clientId: string, clientSecret: string}>`, `listApiClients(userId: string): Promise<Array<{id, name, clientId, createdAt, revokedAt, lastUsedAt}>>`, `revokeApiClient(userId: string, clientRecordId: string): Promise<void>`, `findActiveClientByCredentials(clientId: string, clientSecret: string): Promise<{id: string, userId: string} | null>` — all consumed by Task 6 (public API route) and Task 7 (dashboard actions).
+- Produces: `createApiClient(userId: string, name: string): Promise<{id: string, clientId: string, clientSecret: string}>`, `listApiClients(userId: string): Promise<Array<{id, name, clientId, createdAt, revokedAt, lastUsedAt}>>`, `revokeApiClient(userId: string, clientRecordId: string): Promise<void>`, `findActiveClientByCredentials(clientId: string, clientSecret: string): Promise<{id: string, userId: string} | null>` — all consumed by Task 7 (public API route) and Task 8 (dashboard actions).
 
 - [ ] **Step 1: Write `lib/models/api-clients.ts`**
 
@@ -426,14 +593,14 @@ git commit -m "feat: add API client-credential data model (create/list/revoke/lo
 
 ---
 
-### Task 4: Rate limiter
+### Task 5: Rate limiter
 
 **Files:**
 - Create: `lib/rate-limit.ts`
 
 **Interfaces:**
 - Consumes: `prisma` from `lib/prisma.ts` (Task 1), the `RateLimitWindow` model (Task 1).
-- Produces: `checkRateLimit(apiClientRecordId: string): Promise<{allowed: boolean, remaining: number, retryAfterSeconds: number}>`, `ensureRateLimitTtlIndex(): Promise<void>`, consumed by Task 6.
+- Produces: `checkRateLimit(apiClientRecordId: string, limit: number): Promise<{allowed: boolean, remaining: number, retryAfterSeconds: number}>`, `ensureRateLimitTtlIndex(): Promise<void>`, consumed by Task 7, which resolves `limit` from the requesting client's owning user's `Plan.requestsPerMinute` (Task 2/3) before calling in.
 
 - [ ] **Step 1: Write `lib/rate-limit.ts`**
 
@@ -441,14 +608,16 @@ git commit -m "feat: add API client-credential data model (create/list/revoke/lo
 import prisma from "@/lib/prisma";
 
 const WINDOW_SECONDS = 60;
-const MAX_REQUESTS_PER_WINDOW = 10;
 
 // Fixed-window counter: one document per (apiClientRecordId, minute),
 // atomically incremented via upsert. The TTL index (see
 // ensureRateLimitTtlIndex) cleans up old windows automatically so this
-// collection never grows unbounded.
+// collection never grows unbounded. `limit` is the caller's resolved plan
+// limit (Plan.requestsPerMinute) - this module has no pricing-plan
+// knowledge of its own, it only counts and compares.
 export async function checkRateLimit(
-  apiClientRecordId: string
+  apiClientRecordId: string,
+  limit: number
 ): Promise<{ allowed: boolean; remaining: number; retryAfterSeconds: number }> {
   const nowSeconds = Math.floor(Date.now() / 1000);
   const windowStart = Math.floor(nowSeconds / WINDOW_SECONDS) * WINDOW_SECONDS;
@@ -464,8 +633,8 @@ export async function checkRateLimit(
   const retryAfterSeconds = windowStart + WINDOW_SECONDS - nowSeconds;
 
   return {
-    allowed: result.count <= MAX_REQUESTS_PER_WINDOW,
-    remaining: Math.max(0, MAX_REQUESTS_PER_WINDOW - result.count),
+    allowed: result.count <= limit,
+    remaining: Math.max(0, limit - result.count),
     retryAfterSeconds,
   };
 }
@@ -501,9 +670,10 @@ import { checkRateLimit, ensureRateLimitTtlIndex } from "./lib/rate-limit.ts";
 await ensureRateLimitTtlIndex();
 
 const clientRecordId = "rate-limit-test-client";
+const testLimit = 10;
 let lastResult;
 for (let i = 0; i < 11; i++) {
-  lastResult = await checkRateLimit(clientRecordId);
+  lastResult = await checkRateLimit(clientRecordId, testLimit);
   console.log(`request ${i + 1}:`, lastResult);
 }
 console.assert(lastResult.allowed === false, "FAIL: 11th request in the same minute should be blocked");
@@ -524,7 +694,7 @@ git commit -m "feat: add per-API-client rate limiter backed by Prisma/MongoDB TT
 
 ---
 
-### Task 5: Extract shared PDF generation
+### Task 6: Extract shared PDF generation
 
 **Files:**
 - Create: `lib/generate-pdf.ts`
@@ -532,7 +702,7 @@ git commit -m "feat: add per-API-client rate limiter backed by Prisma/MongoDB TT
 
 **Interfaces:**
 - Consumes: `PdfConfig` from `lib/pdf-config.ts` (already exists).
-- Produces: `generatePdf(html: string, config: PdfConfig): Promise<Buffer>`, consumed by both `app/api/generate-pdf/route.ts` (this task) and `app/api/convert/route.ts` (Task 6).
+- Produces: `generatePdf(html: string, config: PdfConfig): Promise<Buffer>`, consumed by both `app/api/generate-pdf/route.ts` (this task) and `app/api/convert/route.ts` (Task 7).
 
 - [ ] **Step 1: Write `lib/generate-pdf.ts`**
 
@@ -636,15 +806,15 @@ git commit -m "refactor: extract shared PDF generation for reuse by the public A
 
 ---
 
-### Task 6: Public API endpoint (`POST /api/convert`)
+### Task 7: Public API endpoint (`POST /api/convert`)
 
 **Files:**
 - Create: `app/api/convert/route.ts`
 - Modify: `lib/pdf-config.ts` (add `publicOptionsToPdfConfig` and a `parseMarginString` helper)
 
 **Interfaces:**
-- Consumes: `findActiveClientByCredentials` (Task 3), `checkRateLimit` (Task 4), `generatePdf` (Task 5), `sanitizePdfConfig` (existing).
-- Produces: the public `POST /api/convert` HTTP endpoint documented in Task 8's `/docs` page.
+- Consumes: `findActiveClientByCredentials` (Task 4), `checkRateLimit` (Task 5), `getRequestsPerMinuteForUser` (Task 2), `generatePdf` (Task 6), `sanitizePdfConfig` (existing).
+- Produces: the public `POST /api/convert` HTTP endpoint documented in Task 9's `/docs` page.
 
 - [ ] **Step 1: Add the public-options mapper to `lib/pdf-config.ts`**
 
@@ -695,6 +865,7 @@ export function publicOptionsToPdfConfig(options: PublicConvertOptions | undefin
 ```ts
 import { NextRequest, NextResponse } from "next/server";
 import { findActiveClientByCredentials } from "@/lib/models/api-clients";
+import { getRequestsPerMinuteForUser } from "@/lib/models/plans";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { publicOptionsToPdfConfig } from "@/lib/pdf-config";
 import { generatePdf } from "@/lib/generate-pdf";
@@ -740,7 +911,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid or revoked client credentials" }, { status: 401 });
   }
 
-  const rateLimit = await checkRateLimit(apiClient.id);
+  const limit = await getRequestsPerMinuteForUser(apiClient.userId);
+  const rateLimit = await checkRateLimit(apiClient.id, limit);
   if (!rateLimit.allowed) {
     return NextResponse.json(
       { error: "Rate limit exceeded" },
@@ -770,12 +942,12 @@ export async function POST(request: NextRequest) {
 Run: `npx tsc --noEmit && bun run lint`
 Expected: no errors.
 
-- [ ] **Step 4: Manual verification (requires a real client_id/client_secret pair from Task 3's script or Task 7's dashboard)**
+- [ ] **Step 4: Manual verification (requires a real client_id/client_secret pair from Task 4's script or Task 8's dashboard)**
 
 ```bash
 bun dev &
 sleep 4
-# Replace CLIENT_ID / CLIENT_SECRET with a pair from createApiClient() (Task 3 script or dashboard)
+# Replace CLIENT_ID / CLIENT_SECRET with a pair from createApiClient() (Task 4 script or dashboard)
 curl -s -X POST http://localhost:3000/api/convert \
   -u "CLIENT_ID:CLIENT_SECRET" \
   -H "Content-Type: application/json" \
@@ -799,7 +971,7 @@ git commit -m "feat: add public POST /api/convert endpoint with client-credentia
 
 ---
 
-### Task 7: Dashboard (API client credential management UI)
+### Task 8: Dashboard (API client credential management UI)
 
 **Files:**
 - Create: `app/dashboard/page.tsx`
@@ -807,8 +979,8 @@ git commit -m "feat: add public POST /api/convert endpoint with client-credentia
 - Create: `app/dashboard/create-client-form.tsx`
 
 **Interfaces:**
-- Consumes: `auth()` (Task 2), `createApiClient`/`listApiClients`/`revokeApiClient` (Task 3).
-- Produces: the `/dashboard` page, linked from Task 9's redesigned landing page nav.
+- Consumes: `auth()` (Task 3), `createApiClient`/`listApiClients`/`revokeApiClient` (Task 4).
+- Produces: the `/dashboard` page, linked from Task 10's redesigned landing page nav.
 
 - [ ] **Step 1: Write `app/dashboard/actions.ts`**
 
@@ -968,7 +1140,7 @@ export default async function DashboardPage() {
 Run: `npx tsc --noEmit && bun run lint`
 Expected: no errors.
 
-- [ ] **Step 5: Manual verification (requires a real browser + a completed GitHub login from Task 2)**
+- [ ] **Step 5: Manual verification (requires a real browser + a completed GitHub login from Task 3)**
 
 Visit `http://localhost:3000/dashboard` while signed out - expect a redirect (via `middleware.ts`) to the sign-in flow. Sign in with GitHub, then visit `/dashboard` again - expect the client list UI, a working "Create client" button that shows a one-time `client_id` + `client_secret` pair, and a working "Revoke" button.
 
@@ -981,7 +1153,7 @@ git commit -m "feat: add dashboard for API client credential management"
 
 ---
 
-### Task 8: `/docs` page
+### Task 9: `/docs` page
 
 **Files:**
 - Create: `lib/api-example.ts`
@@ -989,7 +1161,7 @@ git commit -m "feat: add dashboard for API client credential management"
 
 **Interfaces:**
 - Consumes: nothing (static content).
-- Produces: the `/docs` route, and the shared `FETCH_EXAMPLE` constant, both consumed by Task 9's landing page.
+- Produces: the `/docs` route, and the shared `FETCH_EXAMPLE` constant, both consumed by Task 10's landing page.
 
 - [ ] **Step 1: Write `lib/api-example.ts`**
 
@@ -1135,8 +1307,8 @@ export default function DocsPage() {
             <tr>
               <td className="py-2 pr-4 font-mono">429</td>
               <td className="py-2">
-                Rate limit exceeded (10 requests/minute per client). Check the{" "}
-                <code>Retry-After</code> header.
+                Rate limit exceeded. Your limit is set by your current plan
+                (requests/minute) - check the <code>Retry-After</code> header.
               </td>
             </tr>
           </tbody>
@@ -1186,13 +1358,13 @@ git commit -m "feat: add /docs API reference page"
 
 ---
 
-### Task 9: Landing page redesign
+### Task 10: Landing page redesign
 
 **Files:**
 - Modify: `app/page.tsx`
 
 **Interfaces:**
-- Consumes: `FETCH_EXAMPLE` from `lib/api-example.ts` (Task 8).
+- Consumes: `FETCH_EXAMPLE` from `lib/api-example.ts` (Task 9).
 - Produces: nothing consumed elsewhere - this is the final, user-facing task.
 
 - [ ] **Step 1: Read the current `app/page.tsx` in full before editing**
@@ -1201,7 +1373,7 @@ This file already has features/stats sections and JSON-LD structured data (per `
 
 - [ ] **Step 2: Add a top nav bar** with links to `/docs`, `/dashboard` (or "Sign in" if signed out - check `auth()` in a server component), and the existing `/editor` CTA. Keep the brand color `#ea580c` gradient already used elsewhere (e.g. `from-orange-500 to-red-500`, matching `app/editor/page.tsx`'s header).
 
-- [ ] **Step 3: Add an "API" section** below the existing features grid, showing `FETCH_EXAMPLE` imported from `lib/api-example.ts` (Task 8) - do not duplicate the string - with a "Read the docs" link to `/docs`.
+- [ ] **Step 3: Add an "API" section** below the existing features grid, showing `FETCH_EXAMPLE` imported from `lib/api-example.ts` (Task 9) - do not duplicate the string - with a "Read the docs" link to `/docs`.
 
 - [ ] **Step 4: Refresh copy for credibility** - e.g. sharpen the hero subheading, tighten section headings - without inventing unverifiable claims (no fake testimonials, no fabricated user/download counts beyond what's already there).
 
@@ -1229,8 +1401,8 @@ git commit -m "feat: redesign landing page with nav, API section, and docs link"
 
 ## Self-Review
 
-**Spec coverage:** GitHub-OAuth login (Task 2) - dashboard for client-credential management (Task 7) - Prisma/MongoDB for everything including rate limiting (Tasks 1, 3, 4) - rate-limited public API using client ID + client secret over HTTP Basic auth, matching the user's exact requirement (Task 6) - `/docs` page (Task 8) - redesigned landing page (Task 9). All requirements map to a task.
+**Spec coverage:** GitHub-OAuth login (Task 3) - configurable, deprecate/launch-capable pricing plans with no UI yet (Task 2) - dashboard for client-credential management (Task 8) - Prisma/MongoDB for everything including plan-based rate limiting (Tasks 1, 2, 5) - rate-limited public API using client ID + client secret over HTTP Basic auth, matching the user's exact requirement (Task 7) - `/docs` page (Task 9) - redesigned landing page (Task 10). All requirements map to a task.
 
 **Placeholder scan:** every step has real, complete code - no "add validation here"-style gaps.
 
-**Type consistency:** `PdfConfig`/`sanitizePdfConfig` (existing) is reused unchanged by Task 6's new `publicOptionsToPdfConfig`, not reimplemented. `generatePdf(html, config)` signature (Task 5) is identical between its two callers (Task 5's own edit to `generate-pdf/route.ts`, and Task 6's `convert/route.ts`). `findActiveClientByCredentials` returns `{id, userId}` (Task 3) and Task 6 only reads `.id`, matching. `createApiClient`'s return shape `{id, clientId, clientSecret}` (Task 3) matches what Task 7's `create-client-form.tsx` destructures. `FETCH_EXAMPLE` is defined once in `lib/api-example.ts` (Task 8) and imported by both `/docs` (Task 8) and the landing page (Task 9) - no duplication.
+**Type consistency:** `PdfConfig`/`sanitizePdfConfig` (existing) is reused unchanged by Task 7's new `publicOptionsToPdfConfig`, not reimplemented. `generatePdf(html, config)` signature (Task 6) is identical between its two callers (Task 6's own edit to `generate-pdf/route.ts`, and Task 7's `convert/route.ts`). `findActiveClientByCredentials` returns `{id, userId}` (Task 4) and Task 7 only reads `.id`, matching. `createApiClient`'s return shape `{id, clientId, clientSecret}` (Task 4) matches what Task 8's `create-client-form.tsx` destructures. `FETCH_EXAMPLE` is defined once in `lib/api-example.ts` (Task 9) and imported by both `/docs` (Task 9) and the landing page (Task 10) - no duplication.

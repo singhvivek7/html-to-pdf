@@ -408,6 +408,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [GitHub],
   session: { strategy: "database" },
+  callbacks: {
+    // Required for proxy.ts's matcher to actually deny/redirect - without
+    // this, `export { auth as proxy }` only decorates matched requests
+    // with req.auth, it does not gate them (confirmed against Auth.js's
+    // own docs). This is what makes /dashboard/* redirect unauthenticated
+    // visitors to sign-in instead of rendering the page for them.
+    authorized: async ({ auth }) => !!auth,
+  },
   events: {
     // New sign-ups start on whichever plan is currently flagged isDefault.
     // If none is seeded yet, the user is left planless rather than failing

@@ -70,6 +70,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://renderpdf.vercel.app",
   },
+  icons: {
+    icon: [
+      { url: "/favicon/favicon.ico", sizes: "any" },
+      { url: "/favicon/icon.png", type: "image/png" },
+    ],
+    apple: [{ url: "/favicon/apple-icon.png" }],
+  },
 };
 
 export default function RootLayout({

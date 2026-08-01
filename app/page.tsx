@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NextImage from "next/image";
 import {
   FileText,
   Code,
@@ -87,9 +88,7 @@ export default function Home() {
       <nav className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-red-500">
-              <FileCode className="h-5 w-5 text-white" />
-            </div>
+            <NextImage src="/favicon/icon.png" alt="RenderPDF" width={36} height={36} className="rounded-lg" />
             <span className="text-xl font-bold">RenderPDF</span>
           </div>
           <div className="hidden items-center gap-8 md:flex">
@@ -413,9 +412,7 @@ const pdf = await response.blob();`}</code>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-red-500">
-                <FileCode className="h-4 w-4 text-white" />
-              </div>
+              <NextImage src="/favicon/icon.png" alt="RenderPDF" width={32} height={32} className="rounded-lg" />
               <span className="font-bold">RenderPDF</span>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">

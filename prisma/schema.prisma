@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 // --- Auth.js (@auth/prisma-adapter) models: field names/types match the
@@ -18,6 +19,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
   apiClients    ApiClient[]
+  planId        String?   @db.ObjectId
+  plan          Plan?     @relation(fields: [planId], references: [id])
 }
 
 model Account {
@@ -79,4 +82,23 @@ model RateLimitWindow {
   id        String   @id @map("_id")
   count     Int
   expiresAt DateTime
+}
+
+// A pricing plan, configurable from the backend (Task 2's lib/models/plans.ts)
+// with no UI yet - the UI comes later. status lets an operator deprecate an
+// old plan and launch a new one without deleting history: deprecated plans
+// stay attached to whichever users already have them, they just stop being
+// offered to new sign-ups. requestsPerMinute is the per-API-client rate
+// limit Task 5's rate limiter enforces for users on this plan.
+model Plan {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  slug              String    @unique
+  priceCents        Int
+  requestsPerMinute Int
+  isDefault         Boolean   @default(false)
+  status            String    @default("active")
+  createdAt         DateTime  @default(now())
+  deprecatedAt      DateTime?
+  users             User[]
 }

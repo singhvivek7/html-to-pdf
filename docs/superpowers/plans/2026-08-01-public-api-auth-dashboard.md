@@ -947,7 +947,10 @@ export async function POST(request: NextRequest) {
   const config = publicOptionsToPdfConfig(body.options);
   const pdf = await generatePdf(body.html, config);
 
-  return new NextResponse(pdf, {
+  // NextResponse's BodyInit type doesn't accept Buffer directly in this
+  // repo's TS/@types/node setup - wrap it, same fix Task 6 needed for the
+  // sibling route.
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
       "X-RateLimit-Remaining": String(rateLimit.remaining),

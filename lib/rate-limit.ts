@@ -2,6 +2,18 @@ import prisma from "@/lib/prisma";
 
 const WINDOW_SECONDS = 60;
 
+let ttlIndexEnsured = false;
+
+// Ensures the TTL index exists exactly once per process. Called lazily from
+// checkRateLimit rather than requiring a separate manual seed step, so the
+// index self-installs on first use in any process (dev server, serverless
+// cold start, etc).
+async function ensureRateLimitTtlIndexOnce() {
+  if (ttlIndexEnsured) return;
+  ttlIndexEnsured = true;
+  await ensureRateLimitTtlIndex();
+}
+
 // Fixed-window counter: one document per (apiClientRecordId, minute),
 // atomically incremented via upsert. The TTL index (see
 // ensureRateLimitTtlIndex) cleans up old windows automatically so this
@@ -12,6 +24,8 @@ export async function checkRateLimit(
   apiClientRecordId: string,
   limit: number
 ): Promise<{ allowed: boolean; remaining: number; retryAfterSeconds: number }> {
+  await ensureRateLimitTtlIndexOnce();
+
   const nowSeconds = Math.floor(Date.now() / 1000);
   const windowStart = Math.floor(nowSeconds / WINDOW_SECONDS) * WINDOW_SECONDS;
   const windowId = `${apiClientRecordId}:${windowStart}`;

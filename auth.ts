@@ -15,6 +15,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // own docs). This is what makes /dashboard/* redirect unauthenticated
     // visitors to sign-in instead of rendering the page for them.
     authorized: async ({ auth }) => !!auth,
+    // Auth.js's default database-strategy session callback only copies
+    // {name, email, image} from the adapter user onto session.user - id is
+    // dropped unless explicitly propagated here. Without this, every
+    // session.user.id downstream (Task 8's dashboard actions, Task 7's
+    // rate-limit-by-plan lookups if ever driven from a session instead of
+    // an API client) is undefined for every real signed-in user.
+    session: async ({ session, user }) => {
+      if (session.user) session.user.id = user.id;
+      return session;
+    },
   },
   events: {
     // New sign-ups start on whichever plan is currently flagged isDefault.

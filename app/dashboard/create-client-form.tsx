@@ -8,6 +8,7 @@ export function CreateClientForm() {
   const [newCredentials, setNewCredentials] = useState<{ clientId: string; clientSecret: string } | null>(
     null
   );
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -37,17 +38,24 @@ export function CreateClientForm() {
           </button>
         </div>
       ) : (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            startTransition(async () => {
-              const result = await createApiClientAction(name);
-              setNewCredentials({ clientId: result.clientId, clientSecret: result.clientSecret });
-              setName("");
-            });
-          }}
-          className="flex gap-2"
-        >
+        <div className="space-y-2">
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setError(null);
+              startTransition(async () => {
+                try {
+                  const result = await createApiClientAction(name);
+                  setNewCredentials({ clientId: result.clientId, clientSecret: result.clientSecret });
+                  setName("");
+                } catch {
+                  setError("Couldn't create the client. Please try again.");
+                }
+              });
+            }}
+            className="flex gap-2"
+          >
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -61,7 +69,8 @@ export function CreateClientForm() {
           >
             {isPending ? "Creating..." : "Create client"}
           </button>
-        </form>
+          </form>
+        </div>
       )}
     </div>
   );

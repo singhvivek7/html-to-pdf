@@ -91,8 +91,8 @@ function parseMarginString(value: string): number {
 export function publicOptionsToPdfConfig(options: PublicConvertOptions | undefined): PdfConfig {
   const raw: Partial<Record<keyof PdfConfig, unknown>> = {};
 
-  if (options?.format) raw.format = options.format.toLowerCase();
-  if (options?.orientation) raw.orientation = options.orientation.toLowerCase();
+  if (typeof options?.format === "string") raw.format = options.format.toLowerCase();
+  if (typeof options?.orientation === "string") raw.orientation = options.orientation.toLowerCase();
 
   if (typeof options?.margin === "string") {
     const mm = parseMarginString(options.margin);
@@ -102,10 +102,10 @@ export function publicOptionsToPdfConfig(options: PublicConvertOptions | undefin
     raw.marginLeft = mm;
   } else if (options?.margin && typeof options.margin === "object") {
     const { top, right, bottom, left } = options.margin;
-    if (top !== undefined) raw.marginTop = parseMarginString(top);
-    if (right !== undefined) raw.marginRight = parseMarginString(right);
-    if (bottom !== undefined) raw.marginBottom = parseMarginString(bottom);
-    if (left !== undefined) raw.marginLeft = parseMarginString(left);
+    if (typeof top === "string") raw.marginTop = parseMarginString(top);
+    if (typeof right === "string") raw.marginRight = parseMarginString(right);
+    if (typeof bottom === "string") raw.marginBottom = parseMarginString(bottom);
+    if (typeof left === "string") raw.marginLeft = parseMarginString(left);
   }
 
   return sanitizePdfConfig(raw);

@@ -157,6 +157,16 @@
   .animate-glow {
     animation: glow 2.5s ease-in-out infinite;
   }
+  .font-display {
+    font-family: var(--font-display), var(--font-sans);
+    letter-spacing: -0.01em;
+  }
+  .font-body {
+    font-family: var(--font-body), var(--font-sans);
+  }
+  .font-mono-accent {
+    font-family: var(--font-mono-accent), var(--font-mono);
+  }
   .bg-grid {
     background-image:
       linear-gradient(to right, var(--border) 1px, transparent 1px),
@@ -222,6 +232,45 @@
   50% {
     opacity: 1;
     transform: scale(1.03);
+  }
+}
+
+.floating-card-a {
+  animation: float-card-a 8s ease-in-out infinite;
+}
+.floating-card-b {
+  animation: float-card-b 9s ease-in-out infinite;
+  animation-delay: -3s;
+}
+.floating-card-c {
+  animation: float-card-c 7s ease-in-out infinite;
+  animation-delay: -1.5s;
+}
+
+@keyframes float-card-a {
+  0%, 100% {
+    transform: translate3d(-72%, -62%, 60px) rotateX(8deg) rotateY(-12deg);
+  }
+  50% {
+    transform: translate3d(-66%, -68%, 90px) rotateX(4deg) rotateY(-7deg);
+  }
+}
+
+@keyframes float-card-b {
+  0%, 100% {
+    transform: translate3d(-28%, -46%, 10px) rotateX(-6deg) rotateY(9deg);
+  }
+  50% {
+    transform: translate3d(-34%, -40%, 30px) rotateX(-3deg) rotateY(5deg);
+  }
+}
+
+@keyframes float-card-c {
+  0%, 100% {
+    transform: translate3d(-48%, -28%, -20px) rotateX(5deg) rotateY(3deg);
+  }
+  50% {
+    transform: translate3d(-52%, -33%, 0px) rotateX(2deg) rotateY(1deg);
   }
 }
 

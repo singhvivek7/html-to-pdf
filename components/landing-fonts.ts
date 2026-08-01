@@ -1,8 +1,8 @@
-import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Oswald, Inter, JetBrains_Mono } from "next/font/google";
 
-export const spaceGrotesk = Space_Grotesk({
+export const oswald = Oswald({
   subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["500", "600", "700"],
   variable: "--font-display",
 });
 

@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RenderPDF
 
-## Getting Started
+Convert HTML/CSS into print-ready PDFs — in the browser or via API. Live at [renderpdf.vercel.app](https://renderpdf.vercel.app).
 
-First, run the development server:
+## Routes
+
+- **`/`** — marketing landing page
+- **`/editor`** — the tool: paste/upload HTML, live preview, configure page size/margins, download the PDF
+- **`/docs`** — API reference
+- **`/dashboard`** — sign in (GitHub OAuth) to create/revoke API client credentials
+
+## How it works
+
+- **Editor PDF export** writes the HTML into a popup window with `@media print` rules forcing background colors and `@page` sizing, then calls `window.print()` — no client-side rasterization library involved.
+- **API PDF export** (`POST /api/convert`, see `/docs`) renders server-side with headless Chromium (`puppeteer-core` + `@sparticuz/chromium`) so output is pixel-accurate regardless of client.
+- **Auth** is Auth.js (NextAuth v5) with the GitHub provider and a database session strategy, persisted via Prisma to MongoDB.
+- **API clients** are client ID/secret pairs (secret hashed at rest, shown once at creation) used for HTTP Basic auth on `/api/convert`. Rate limits are enforced per plan via a Mongo TTL-backed fixed-window counter.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun install
+cp .env.example .env   # fill in DATABASE_URL, AUTH_GITHUB_ID/SECRET, AUTH_SECRET
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+See `.env.example`:
 
-## Learn More
+- `DATABASE_URL` — MongoDB connection string (Prisma)
+- `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` — GitHub OAuth App credentials
+- `AUTH_SECRET` — session cookie signing secret (`npx auth secret`)
 
-To learn more about Next.js, take a look at the following resources:
+## Commands
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+bun dev          # next dev
+bun run build    # next build
+bun run start    # next start
+bun run lint     # eslint
+bun run db:push  # push Prisma schema to the database
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`postinstall` runs `prisma generate` automatically.
 
-## Deploy on Vercel
+## Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 16 (App Router) · React 19 · Tailwind v4 · Prisma + MongoDB · Auth.js v5 · Puppeteer (server-side rendering) · CodeMirror (editor) · Motion (landing page animation)

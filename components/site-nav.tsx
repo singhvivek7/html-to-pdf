@@ -21,12 +21,9 @@ export function SiteNav({ isSignedIn }: { isSignedIn: boolean }) {
 
   return (
     <nav
-      className="fixed top-0 z-50 w-full border-b transition-all duration-300"
-      style={{
-        borderColor: scrolled ? "rgba(255,255,255,0.09)" : "transparent",
-        background: scrolled ? "rgba(12,15,22,0.85)" : "transparent",
-        backdropFilter: scrolled ? "blur(20px)" : "none",
-      }}
+      className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${
+        scrolled ? "border-[#EFE9DD]/[0.12] bg-[#1C1B19]/90 backdrop-blur-xl" : "border-transparent bg-transparent"
+      }`}
     >
       <div
         className={`mx-auto flex max-w-7xl items-center justify-between px-4 transition-all duration-300 sm:px-6 lg:px-8 ${
@@ -34,13 +31,10 @@ export function SiteNav({ isSignedIn }: { isSignedIn: boolean }) {
         }`}
       >
         <Link href="/" className="flex items-center gap-2.5">
-          <span
-            className="h-7 w-7 rounded-lg"
-            style={{ background: "linear-gradient(100deg, #6E7BFF, #FF7A59)" }}
-          />
-          <span className="font-display text-lg font-semibold" style={{ color: "#E7E9EF" }}>
-            RenderPDF
+          <span className="relative flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-[#C4763B]">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#C4763B]" />
           </span>
+          <span className="font-display text-lg font-semibold text-[#EFE9DD]">RenderPDF</span>
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
@@ -48,8 +42,7 @@ export function SiteNav({ isSignedIn }: { isSignedIn: boolean }) {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm transition-colors"
-              style={{ color: "#8890A3" }}
+              className="text-xs uppercase tracking-wide text-[#A29A8C] transition-colors hover:text-[#EFE9DD]"
             >
               {link.label}
             </a>
@@ -59,15 +52,13 @@ export function SiteNav({ isSignedIn }: { isSignedIn: boolean }) {
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="hidden text-sm transition-colors sm:block"
-            style={{ color: "#8890A3" }}
+            className="hidden text-sm text-[#A29A8C] transition-colors hover:text-[#EFE9DD] sm:block"
           >
             {isSignedIn ? "Dashboard" : "Sign in"}
           </Link>
           <Link
             href="/editor"
-            className="rounded-full px-4 py-2 font-mono-accent text-sm font-medium transition-shadow hover:shadow-[0_0_20px_rgba(110,123,255,0.4)]"
-            style={{ background: "#6E7BFF", color: "#0C0F16" }}
+            className="font-display border border-[#C4763B] px-4 py-2 text-xs font-medium uppercase tracking-wide text-[#C4763B] transition-colors hover:bg-[#C4763B] hover:text-[#1C1B19]"
           >
             Get Started
           </Link>

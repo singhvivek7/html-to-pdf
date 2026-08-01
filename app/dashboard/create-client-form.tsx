@@ -15,7 +15,7 @@ export function CreateClientForm() {
     <div className="rounded-lg border border-border bg-card p-4">
       {newCredentials ? (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-orange-600">
+          <p className="text-sm font-medium text-primary">
             Copy the client secret now - it won&apos;t be shown again.
           </p>
           <div>
@@ -39,7 +39,7 @@ export function CreateClientForm() {
         </div>
       ) : (
         <div className="space-y-2">
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -65,7 +65,7 @@ export function CreateClientForm() {
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-md bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="font-display rounded-md bg-primary px-4 py-2 text-sm font-medium uppercase tracking-wide text-primary-foreground disabled:opacity-50"
           >
             {isPending ? "Creating..." : "Create client"}
           </button>

@@ -18,11 +18,8 @@ const item = {
 export function Hero() {
   return (
     <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-32">
-      <div className="absolute inset-0 -z-10" style={{ background: "#0C0F16" }}>
-        <div
-          className="absolute left-1/2 top-0 h-[600px] w-[900px] -translate-x-1/2 rounded-full opacity-30 blur-3xl"
-          style={{ background: "linear-gradient(100deg, #6E7BFF, #FF7A59)" }}
-        />
+      <div className="absolute inset-0 -z-10 bg-[#1C1B19]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(196,118,59,0.08)_0,transparent_40%),radial-gradient(circle_at_85%_80%,rgba(196,118,59,0.06)_0,transparent_45%)] opacity-60" />
       </div>
 
       <motion.div
@@ -34,28 +31,20 @@ export function Hero() {
         <div>
           <motion.div
             variants={item}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm"
-            style={{ borderColor: "rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)", color: "#8890A3" }}
+            className="mb-6 flex items-center gap-2.5 text-xs uppercase tracking-widest text-[#C4763B]"
           >
-            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "#4ADE80" }} />
-            <span>real Chromium under the hood, not a template engine</span>
+            <span className="h-px w-6 bg-[#C4763B]" />
+            <span>Real Chromium under the hood, not a template engine</span>
           </motion.div>
 
           <motion.h1
             variants={item}
-            className="font-display text-4xl font-bold sm:text-6xl lg:text-7xl"
-            style={{ color: "#E7E9EF" }}
+            className="font-display text-4xl font-bold text-[#EFE9DD] sm:text-6xl lg:text-7xl"
           >
-            Markup in.{" "}
-            <span
-              className="bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(100deg, #6E7BFF, #FF7A59)" }}
-            >
-              PDF out.
-            </span>
+            Markup in. <span className="text-[#C4763B]">PDF out.</span>
           </motion.h1>
 
-          <motion.p variants={item} className="font-body mt-6 max-w-lg text-lg" style={{ color: "#8890A3" }}>
+          <motion.p variants={item} className="font-body mt-6 max-w-lg text-lg text-[#A29A8C]">
             Convert HTML and CSS to print-ready PDFs from the browser editor or a single
             authenticated API call. Plan-based rate limits, revocable credentials, built for
             pipelines - not wizards.
@@ -64,22 +53,20 @@ export function Hero() {
           <motion.div variants={item} className="mt-10 flex flex-col gap-4 sm:flex-row">
             <Link
               href="/editor"
-              className="group flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold transition-shadow hover:shadow-[0_0_28px_rgba(110,123,255,0.45)]"
-              style={{ background: "linear-gradient(100deg, #6E7BFF, #FF7A59)", color: "#0C0F16" }}
+              className="font-display group flex items-center justify-center gap-2 bg-[#C4763B] px-7 py-3.5 text-sm font-semibold uppercase tracking-wide text-[#1C1B19] transition-transform hover:-translate-y-0.5"
             >
               Try it free
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               href="/docs"
-              className="rounded-full border px-7 py-3.5 text-center text-base font-semibold transition-colors"
-              style={{ borderColor: "rgba(255,255,255,0.09)", color: "#E7E9EF" }}
+              className="font-display border border-[#EFE9DD]/[0.12] px-7 py-3.5 text-center text-sm font-semibold uppercase tracking-wide text-[#EFE9DD] transition-colors hover:border-[#C4763B] hover:text-[#C4763B]"
             >
               Read the docs
             </Link>
           </motion.div>
 
-          <motion.p variants={item} className="font-mono-accent mt-6 text-sm" style={{ color: "#8890A3" }}>
+          <motion.p variants={item} className="font-mono-accent mt-6 text-sm text-[#A29A8C]">
             {`$ curl -X POST api/convert -d '{"html":"..."}'`}
           </motion.p>
         </div>

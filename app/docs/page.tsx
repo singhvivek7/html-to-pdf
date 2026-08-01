@@ -18,23 +18,35 @@ const CURL_EXAMPLE = `curl -X POST https://renderpdf.vercel.app/api/convert \\
 
 export default function DocsPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
-      <Link href="/" className="text-sm text-muted-foreground hover:underline">
-        &larr; Back
-      </Link>
+    <div className="min-h-screen">
+      <header className="border-b border-[#EFE9DD]/[0.12]">
+        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="relative flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-[#C4763B]">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#C4763B]" />
+            </span>
+            <span className="font-display text-lg font-semibold text-[#EFE9DD]">RenderPDF</span>
+          </Link>
+          <div className="flex items-center gap-6 text-sm text-[#A29A8C]">
+            <Link href="/editor" className="transition-colors hover:text-[#EFE9DD]">Editor</Link>
+            <Link href="/dashboard" className="transition-colors hover:text-[#EFE9DD]">Dashboard</Link>
+          </div>
+        </div>
+      </header>
 
-      <h1 className="mt-4 mb-2 text-3xl font-bold">API Documentation</h1>
+      <div className="mx-auto max-w-3xl px-4 py-12">
+      <h1 className="font-display mt-4 mb-2 text-3xl font-bold">API Documentation</h1>
       <p className="mb-8 text-muted-foreground">
         Convert HTML to a PDF with a single authenticated request. Sign in and create a client ID +
         client secret pair from your{" "}
-        <Link href="/dashboard" className="text-orange-600 hover:underline">
+        <Link href="/dashboard" className="text-primary hover:underline">
           dashboard
         </Link>
         .
       </p>
 
       <section className="mb-8">
-        <h2 className="mb-2 text-xl font-semibold">Authentication</h2>
+        <h2 className="font-display mb-2 text-xl font-semibold">Authentication</h2>
         <p className="mb-2 text-sm text-muted-foreground">
           Every request must include an <code>Authorization: Basic</code> header carrying your
           client ID and client secret as <code>base64(client_id:client_secret)</code> - the same
@@ -45,7 +57,7 @@ export default function DocsPage() {
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-2 text-xl font-semibold">Endpoint</h2>
+        <h2 className="font-display mb-2 text-xl font-semibold">Endpoint</h2>
         <p className="mb-2 text-sm">
           <code className="rounded bg-muted px-2 py-1">POST https://renderpdf.vercel.app/api/convert</code>
         </p>
@@ -86,14 +98,14 @@ export default function DocsPage() {
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-2 text-xl font-semibold">Response</h2>
+        <h2 className="font-display mb-2 text-xl font-semibold">Response</h2>
         <p className="text-sm text-muted-foreground">
           <code>200</code> - the raw PDF bytes, <code>Content-Type: application/pdf</code>.
         </p>
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-2 text-xl font-semibold">Errors</h2>
+        <h2 className="font-display mb-2 text-xl font-semibold">Errors</h2>
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-border text-left">
@@ -122,18 +134,19 @@ export default function DocsPage() {
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-2 text-xl font-semibold">cURL</h2>
-        <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-xs text-zinc-300">
+        <h2 className="font-display mb-2 text-xl font-semibold">cURL</h2>
+        <pre className="overflow-x-auto rounded-lg bg-card p-4 text-xs text-muted-foreground">
           <code>{CURL_EXAMPLE}</code>
         </pre>
       </section>
 
       <section>
-        <h2 className="mb-2 text-xl font-semibold">JavaScript</h2>
-        <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-xs text-zinc-300">
+        <h2 className="font-display mb-2 text-xl font-semibold">JavaScript</h2>
+        <pre className="overflow-x-auto rounded-lg bg-card p-4 text-xs text-muted-foreground">
           <code>{FETCH_EXAMPLE}</code>
         </pre>
       </section>
+      </div>
     </div>
   );
 }

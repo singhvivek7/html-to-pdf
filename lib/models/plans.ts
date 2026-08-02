@@ -54,3 +54,16 @@ export async function getRequestsPerMinuteForUser(userId: string): Promise<numbe
   const user = await prisma.user.findUnique({ where: { id: userId }, include: { plan: true } });
   return user?.plan?.requestsPerMinute ?? FALLBACK_REQUESTS_PER_MINUTE;
 }
+
+// Dashboard-facing summary of a user's plan. Mirrors
+// getRequestsPerMinuteForUser's fallback so a user with no plan assigned
+// still gets a sane display instead of a crash.
+export async function getCurrentUserPlan(
+  userId: string
+): Promise<{ name: string; requestsPerMinute: number }> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, include: { plan: true } });
+  if (user?.plan) {
+    return { name: user.plan.name, requestsPerMinute: user.plan.requestsPerMinute };
+  }
+  return { name: "Free", requestsPerMinute: FALLBACK_REQUESTS_PER_MINUTE };
+}

@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
 import { createApiClient, revokeApiClient } from "@/lib/models/api-clients";
 import { revalidatePath } from "next/cache";
 
@@ -19,4 +19,8 @@ export async function revokeApiClientAction(clientRecordId: string) {
 
   await revokeApiClient(session.user.id, clientRecordId);
   revalidatePath("/dashboard");
+}
+
+export async function signOutAction() {
+  await signOut({ redirectTo: "/" });
 }

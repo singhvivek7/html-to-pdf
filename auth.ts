@@ -8,6 +8,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [GitHub],
   session: { strategy: "database" },
+  pages: {
+    signIn: "/login",
+  },
   callbacks: {
     // Required for proxy.ts's matcher to actually deny/redirect - without
     // this, `export { auth as proxy }` only decorates matched requests

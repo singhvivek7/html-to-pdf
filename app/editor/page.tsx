@@ -184,6 +184,7 @@ export default function EditorPage() {
             extensions={[htmlLang()]}
             value={html}
             onChange={(value) => setHtml(value)}
+            placeholder="<!-- Type or paste your HTML here... -->"
             className="h-full text-[13px] [&_.cm-editor]:h-full"
           />
         ) : (
@@ -191,6 +192,7 @@ export default function EditorPage() {
             value={html}
             onChange={(e) => setHtml(e.target.value)}
             spellCheck={false}
+            placeholder="<!-- Type or paste your HTML here... -->"
             className="h-full w-full resize-none bg-zinc-950 p-4 font-mono text-[13px] text-zinc-100 outline-none"
           />
         )}

@@ -21,7 +21,7 @@ export const DEFAULT_PDF_CONFIG: PdfConfig = {
   marginRight: 0,
   marginBottom: 0,
   marginLeft: 0,
-  useDefaultCss: true,
+  useDefaultCss: false,
 };
 
 // Portrait dimensions in mm for each supported format.

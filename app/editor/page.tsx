@@ -36,6 +36,7 @@ import {
   getPageDimensionsMm,
   type PdfConfig,
 } from "@/lib/pdf-config";
+import { getPdfFilename, injectDefaultCss } from "@/lib/utils";
 
 const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), {
   ssr: false,
@@ -126,7 +127,7 @@ export default function EditorPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "document.pdf";
+      link.download = getPdfFilename(html);
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
@@ -162,6 +163,28 @@ export default function EditorPage() {
           <span className="text-xs text-muted-foreground">
             {html.length.toLocaleString()} characters
           </span>
+          <button
+            type="button"
+            onClick={() =>
+              setPdfConfig((prev) => ({
+                ...prev,
+                useDefaultCss: !prev.useDefaultCss,
+              }))
+            }
+            className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium transition-colors ${
+              pdfConfig.useDefaultCss
+                ? "bg-primary/10 text-primary border border-primary/20"
+                : "bg-muted text-muted-foreground border border-border hover:bg-muted/80"
+            }`}
+            title="Toggle default CSS styles & Google Fonts (Inter, JetBrains Mono)"
+          >
+            <span>Default CSS</span>
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                pdfConfig.useDefaultCss ? "bg-primary" : "bg-muted-foreground/40"
+              }`}
+            />
+          </button>
           <Select
             value={editorMode}
             onValueChange={(value) => setEditorMode(value as EditorMode)}
@@ -244,7 +267,7 @@ export default function EditorPage() {
           >
             <iframe
               ref={previewRef}
-              srcDoc={html}
+              srcDoc={injectDefaultCss(html, pdfConfig.useDefaultCss)}
               className="h-full w-full"
               title="Preview"
               sandbox="allow-same-origin"
@@ -358,7 +381,7 @@ export default function EditorPage() {
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">
                     Margins (mm)
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="mb-3 grid grid-cols-2 gap-2">
                     {(
                       [
                         ["marginTop", "Top"],
@@ -381,6 +404,39 @@ export default function EditorPage() {
                         />
                       </div>
                     ))}
+                  </div>
+
+                  <div className="border-t border-border pt-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="block text-xs font-medium text-foreground">
+                          Default Base CSS
+                        </label>
+                        <span className="block text-[11px] text-muted-foreground">
+                          Reset styles & Google Fonts
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={pdfConfig.useDefaultCss}
+                        onClick={() =>
+                          setPdfConfig((prev) => ({
+                            ...prev,
+                            useDefaultCss: !prev.useDefaultCss,
+                          }))
+                        }
+                        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          pdfConfig.useDefaultCss ? "bg-primary" : "bg-muted-foreground/30"
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-background shadow ring-0 transition duration-200 ease-in-out ${
+                            pdfConfig.useDefaultCss ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </>

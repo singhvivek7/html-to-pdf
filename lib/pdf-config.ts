@@ -11,6 +11,7 @@ export interface PdfConfig {
   marginRight: number;
   marginBottom: number;
   marginLeft: number;
+  useDefaultCss: boolean;
 }
 
 export const DEFAULT_PDF_CONFIG: PdfConfig = {
@@ -20,6 +21,7 @@ export const DEFAULT_PDF_CONFIG: PdfConfig = {
   marginRight: 0,
   marginBottom: 0,
   marginLeft: 0,
+  useDefaultCss: true,
 };
 
 // Portrait dimensions in mm for each supported format.
@@ -63,6 +65,11 @@ export function sanitizePdfConfig(input: unknown): PdfConfig {
     ? (raw.orientation as PdfOrientation)
     : DEFAULT_PDF_CONFIG.orientation;
 
+  const useDefaultCss =
+    typeof raw.useDefaultCss === "boolean"
+      ? raw.useDefaultCss
+      : DEFAULT_PDF_CONFIG.useDefaultCss;
+
   return {
     format,
     orientation,
@@ -70,6 +77,7 @@ export function sanitizePdfConfig(input: unknown): PdfConfig {
     marginRight: sanitizeMargin(raw.marginRight),
     marginBottom: sanitizeMargin(raw.marginBottom),
     marginLeft: sanitizeMargin(raw.marginLeft),
+    useDefaultCss,
   };
 }
 
@@ -77,6 +85,7 @@ export interface PublicConvertOptions {
   format?: string;
   orientation?: string;
   margin?: string | { top?: string; right?: string; bottom?: string; left?: string };
+  useDefaultCss?: boolean;
 }
 
 function parseMarginString(value: string): number {
@@ -93,6 +102,7 @@ export function publicOptionsToPdfConfig(options: PublicConvertOptions | undefin
 
   if (typeof options?.format === "string") raw.format = options.format.toLowerCase();
   if (typeof options?.orientation === "string") raw.orientation = options.orientation.toLowerCase();
+  if (typeof options?.useDefaultCss === "boolean") raw.useDefaultCss = options.useDefaultCss;
 
   if (typeof options?.margin === "string") {
     const mm = parseMarginString(options.margin);

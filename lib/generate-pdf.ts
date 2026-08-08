@@ -1,4 +1,5 @@
 import type { PdfConfig } from "@/lib/pdf-config";
+import { injectDefaultCss } from "@/lib/utils";
 
 async function getBrowser() {
   if (process.env.VERCEL) {
@@ -20,7 +21,8 @@ export async function generatePdf(html: string, config: PdfConfig): Promise<Buff
 
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "load" });
+    const finalHtml = injectDefaultCss(html, config.useDefaultCss);
+    await page.setContent(finalHtml, { waitUntil: "load" });
     await page.evaluateHandle("document.fonts.ready");
     const pdf = await page.pdf({
       format: config.format,
